@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { products } from "@/data/products";
+import { products } from "@/lib/data/products";
 
 type ProductSearchProps = {
   onSelect: (product: {

@@ -5,6 +5,8 @@ import { CartItem } from "@/types/cart";
 import Header from "@/components/layout/Header";
 import Cart from "@/components/cart/Cart";
 import ProductSearch from "@/components/ProductSearch";
+import PriceComparison from "@/components/comparison/PriceComparison";
+import { calculateTotals } from "@/lib/comparison/calculateTotals";
 
 export default function Home() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -86,6 +88,8 @@ export default function Home() {
     );
   };
 
+  const totals = calculateTotals(cart);
+
   return (
     <>
       {toast && (
@@ -106,6 +110,7 @@ export default function Home() {
           decreaseQuantity={decreaseQuantity}
           highlightedItem={highlightedItem}
         />
+        <PriceComparison totals={totals} />
         </div>
       </main>
     </>
