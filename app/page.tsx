@@ -7,6 +7,10 @@ import Cart from "@/components/cart/Cart";
 import ProductSearch from "@/components/ProductSearch";
 import PriceComparison from "@/components/comparison/PriceComparison";
 import { calculateTotals } from "@/lib/comparison/calculateTotals";
+import RecommendationCard from "@/components/dashboard/ReccomendationCard";
+import StoreComparison from "@/components/comparison/StoreComparison";
+import PriceMatrix from "@/components/comparison/PriceMatrix";
+import ComparisonSection from "@/components/dashboard/ComparisonSection";
 
 export default function Home() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -90,6 +94,12 @@ export default function Home() {
 
   const totals = calculateTotals(cart);
 
+  const cheapestStore = totals[0];
+  const mostExpensiveStore = totals[totals.length - 1];
+
+  const savings =
+    mostExpensiveStore.total - cheapestStore.total;
+
   return (
     <>
       {toast && (
@@ -111,6 +121,14 @@ export default function Home() {
           highlightedItem={highlightedItem}
         />
         <PriceComparison totals={totals} />
+          <RecommendationCard
+            cheapestStore={cheapestStore.storeName}
+            cheapestTotal={cheapestStore.total}
+            mostExpensiveStore={mostExpensiveStore.storeName}
+            savings={savings}
+          />
+          <StoreComparison cart={cart} />
+          <ComparisonSection cart={cart} />
         </div>
       </main>
     </>

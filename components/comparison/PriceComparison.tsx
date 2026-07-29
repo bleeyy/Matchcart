@@ -33,7 +33,7 @@ export default function PriceComparison({
         </p>
               {savings > 0 && (
                   <p className="text-green-600 mt-2">
-                      💰 You save ${savings.toFixed(2)} compared to {mostExpensive.storeName} !
+                      💰 You save ${savings.toFixed(2)} compared to {mostExpensive.storeName}!
                   </p>
               )}
       </div>
