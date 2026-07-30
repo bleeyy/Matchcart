@@ -11,6 +11,8 @@ import RecommendationCard from "@/components/dashboard/ReccomendationCard";
 import StoreComparison from "@/components/comparison/StoreComparison";
 import PriceMatrix from "@/components/comparison/PriceMatrix";
 import ComparisonSection from "@/components/dashboard/ComparisonSection";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
 
 export default function Home() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -109,7 +111,9 @@ export default function Home() {
       )}
     <main className="min-h-screen bg-gray-100 flex justify-center items-start pt-20">
       <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-lg">
-        <Header />
+          <Card>
+            <Header />
+          </Card>
         <ProductSearch
           onSelect={handleProductSelect}
         />
@@ -129,6 +133,13 @@ export default function Home() {
           />
           <StoreComparison cart={cart} />
           <ComparisonSection cart={cart} />
+          <Button>
+            Test Button
+          </Button>
+
+          <Button variant="secondary">
+            Secondary Test
+          </Button>
         </div>
       </main>
     </>
