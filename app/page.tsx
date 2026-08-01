@@ -4,15 +4,16 @@ import { useState, useEffect } from "react";
 import { CartItem } from "@/types/cart";
 import Header from "@/components/layout/Header";
 import Cart from "@/components/cart/Cart";
-import ProductSearch from "@/components/ProductSearch";
+import ProductSearch from "@/components/search/ProductSearch";
 import PriceComparison from "@/components/comparison/PriceComparison";
 import { calculateTotals } from "@/lib/comparison/calculateTotals";
 import RecommendationCard from "@/components/dashboard/ReccomendationCard";
 import StoreComparison from "@/components/comparison/StoreComparison";
 import PriceMatrix from "@/components/comparison/PriceMatrix";
-import ComparisonSection from "@/components/dashboard/ComparisonSection";
+import ComparisonSection from "@/components/comparison/ComparisonSection";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
 
 export default function Home() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -140,6 +141,13 @@ export default function Home() {
           <Button variant="secondary">
             Secondary Test
           </Button>
+          <Badge>
+            Best Price
+          </Badge>
+
+          <Badge variant="soft">
+            Dairy
+          </Badge>
         </div>
       </main>
     </>

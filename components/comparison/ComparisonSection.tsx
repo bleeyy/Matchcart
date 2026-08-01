@@ -11,7 +11,7 @@ export default function ComparisonSection({
   return (
     <section className="mt-6">
       <h2 className="text-xl font-bold text-black mb-3">
-        📊 Price Comparison
+        Price Comparison
       </h2>
 
       <PriceMatrix cart={cart} />
