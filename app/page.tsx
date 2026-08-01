@@ -14,6 +14,9 @@ import ComparisonSection from "@/components/comparison/ComparisonSection";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
+import { generateRecommendation } from "@/lib/reccomendation/generateReccomendation";
+import { stores } from "@/lib/data/stores";
+
 
 export default function Home() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -103,6 +106,14 @@ export default function Home() {
   const savings =
     mostExpensiveStore.total - cheapestStore.total;
 
+  const recommendation = generateRecommendation({
+    cheapestStore:
+      stores.find((store) => store.id === cheapestStore.storeId)?.name ?? "Unknown",
+    cheapestTotal: cheapestStore.total,
+    mostExpensiveStore:
+      stores.find((store) => store.id === mostExpensiveStore.storeId)?.name ?? "Unknown",
+    savings,
+  });
   return (
     <>
       {toast && (
@@ -110,27 +121,24 @@ export default function Home() {
           {toast}
         </div>
       )}
-    <main className="min-h-screen bg-gray-100 flex justify-center items-start pt-20">
-      <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-lg">
+      <main className="min-h-screen bg-gray-100 flex justify-center items-start pt-20">
+        <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-lg">
           <Card>
             <Header />
           </Card>
-        <ProductSearch
-          onSelect={handleProductSelect}
-        />
-        <Cart
-          cart={cart}
-          removeItem={removeItem}
-          increaseQuantity={increaseQuantity}
-          decreaseQuantity={decreaseQuantity}
-          highlightedItem={highlightedItem}
-        />
-        <PriceComparison totals={totals} />
+          <ProductSearch
+            onSelect={handleProductSelect}
+          />
+          <Cart
+            cart={cart}
+            removeItem={removeItem}
+            increaseQuantity={increaseQuantity}
+            decreaseQuantity={decreaseQuantity}
+            highlightedItem={highlightedItem}
+          />
+          <PriceComparison totals={totals} />
           <RecommendationCard
-            cheapestStore={cheapestStore.storeName}
-            cheapestTotal={cheapestStore.total}
-            mostExpensiveStore={mostExpensiveStore.storeName}
-            savings={savings}
+            recommendation={recommendation}
           />
           <StoreComparison cart={cart} />
           <ComparisonSection cart={cart} />

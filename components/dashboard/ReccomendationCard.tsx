@@ -14,7 +14,6 @@ export default function RecommendationCard({
   store,
   total,
   savings,
-  comparedTo,
   insights,
 } = recommendation;
   if (savings <= 0) {
