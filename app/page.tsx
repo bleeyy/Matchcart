@@ -113,6 +113,7 @@ export default function Home() {
     mostExpensiveStore:
       stores.find((store) => store.id === mostExpensiveStore.storeId)?.name ?? "Unknown",
     savings,
+    itemCount: cart.length,
   });
   return (
     <>
