@@ -99,7 +99,6 @@ export default function Home() {
   };
 
   const totals = calculateTotals(cart);
-  const storeTotals = calculateTotals(cart);
 
   const cheapestStore = totals[0];
   const mostExpensiveStore = totals[totals.length - 1];
@@ -142,7 +141,7 @@ export default function Home() {
           <RecommendationCard
             recommendation={recommendation}
           />
-          <StoreComparison storeTotals={storeTotals} />
+          <StoreComparison storeTotals={totals} />
           <ComparisonSection cart={cart} />
           <Button>
             Test Button
