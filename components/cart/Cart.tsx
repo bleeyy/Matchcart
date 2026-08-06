@@ -18,10 +18,17 @@ export default function Cart({
 }: CartProps) {
   return (
     <>
-      <h2 className="text-xl font-semibold mb-3 text-black">
-        Cart
-      </h2>
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-2xl font-bold text-[#191F24]">
+            Your Cart
+          </h2>
 
+          <p className="text-sm text-[#3B4954]">
+            {cart.length} {cart.length === 1 ? "item" : "items"}
+          </p>
+        </div>
+      </div>
       {cart.length === 0 ? (
         <p className="text-gray-500">
           Your cart is empty.
