@@ -2,20 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { CartItem } from "@/types/cart";
+
 import Header from "@/components/layout/Header";
 import Cart from "@/components/cart/Cart";
 import ProductSearch from "@/components/search/ProductSearch";
+
 import { calculateTotals } from "@/lib/comparison/calculateTotals";
-import RecommendationCard from "@/components/dashboard/ReccomendationCard";
+
 import StoreComparison from "@/components/comparison/StoreComparison";
 import PriceMatrix from "@/components/comparison/PriceMatrix";
-import ComparisonSection from "@/components/comparison/ComparisonSection";
-import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
-import Badge from "@/components/ui/Badge";
-import { generateRecommendation } from "@/lib/reccomendation/generateReccomendation";
-import { stores } from "@/lib/data/stores";
+import CartSummary from "@/components/dashboard/CartSummary";
 
+import Card from "@/components/ui/Card";
 
 export default function Home() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -103,17 +101,9 @@ export default function Home() {
   const mostExpensiveStore = totals[totals.length - 1];
 
   const savings =
-    mostExpensiveStore.total - cheapestStore.total;
-
-  const recommendation = generateRecommendation({
-    cheapestStore:
-      stores.find((store) => store.id === cheapestStore.storeId)?.name ?? "Unknown",
-    cheapestTotal: cheapestStore.total,
-    mostExpensiveStore:
-      stores.find((store) => store.id === mostExpensiveStore.storeId)?.name ?? "Unknown",
-    savings,
-    itemCount: cart.length,
-  });
+    cheapestStore && mostExpensiveStore
+      ? mostExpensiveStore.total - cheapestStore.total
+      : 0;
   return (
     <>
       {toast && (
@@ -136,26 +126,23 @@ export default function Home() {
             decreaseQuantity={decreaseQuantity}
             highlightedItem={highlightedItem}
           />
-          <RecommendationCard
-            recommendation={recommendation}
+
+          {cheapestStore && (
+            <CartSummary
+              store={cheapestStore.storeName}
+              total={cheapestStore.total}
+              savings={savings}
+              comparedTo={mostExpensiveStore.storeName}
+              itemCount={cart.length}
+            />
+          )}
+          <StoreComparison
+            storeTotals={totals}
           />
-          <StoreComparison storeTotals={totals} />
-          <ComparisonSection cart={cart} />
-          <Button>
-            Test Button
-          </Button>
 
-          <Button variant="secondary">
-            Secondary Test
-          </Button>
-          <Badge>
-            Best Price
-          </Badge>
-
-          <Badge variant="soft">
-            Dairy
-          </Badge>
-        </div>
+          <PriceMatrix
+            cart={cart}
+          />        </div>
       </main>
     </>
   );
