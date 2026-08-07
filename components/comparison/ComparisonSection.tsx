@@ -10,10 +10,6 @@ export default function ComparisonSection({
 }: ComparisonSectionProps) {
   return (
     <section className="mt-6">
-      <h2 className="text-xl font-bold text-black mb-3">
-        Price Comparison
-      </h2>
-
       <PriceMatrix cart={cart} />
     </section>
   );

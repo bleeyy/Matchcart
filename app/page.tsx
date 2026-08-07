@@ -5,7 +5,6 @@ import { CartItem } from "@/types/cart";
 import Header from "@/components/layout/Header";
 import Cart from "@/components/cart/Cart";
 import ProductSearch from "@/components/search/ProductSearch";
-import PriceComparison from "@/components/comparison/PriceComparison";
 import { calculateTotals } from "@/lib/comparison/calculateTotals";
 import RecommendationCard from "@/components/dashboard/ReccomendationCard";
 import StoreComparison from "@/components/comparison/StoreComparison";
@@ -137,7 +136,6 @@ export default function Home() {
             decreaseQuantity={decreaseQuantity}
             highlightedItem={highlightedItem}
           />
-          <PriceComparison totals={totals} />
           <RecommendationCard
             recommendation={recommendation}
           />
