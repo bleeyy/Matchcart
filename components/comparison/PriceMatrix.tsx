@@ -17,6 +17,10 @@ export default function PriceMatrix({
     cart,
 }: PriceMatrixProps) {
 
+    if (cart.length === 0) {
+        return null;
+    }
+    
     const [expanded, setExpanded] = useState(false);
 
     return (

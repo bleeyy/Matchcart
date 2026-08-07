@@ -12,6 +12,10 @@ type StoreComparisonProps = {
 export default function StoreComparison({
   storeTotals,
 }: StoreComparisonProps) {
+  
+  if (storeTotals.length === 0) {
+    return null;
+  }
 
   const cheapestTotal = Math.min(
     ...storeTotals.map((store) => store.total)
