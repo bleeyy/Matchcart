@@ -31,7 +31,7 @@ export default function Cart({
       </div>
       {cart.length === 0 ? (
         <p className="text-gray-500">
-          Your cart is empty.
+          Add items to start comparing prices.
         </p>
       ) : (
         <ul className="space-y-2">

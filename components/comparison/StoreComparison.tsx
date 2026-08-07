@@ -12,7 +12,7 @@ type StoreComparisonProps = {
 export default function StoreComparison({
   storeTotals,
 }: StoreComparisonProps) {
-  
+
   if (storeTotals.length === 0) {
     return null;
   }

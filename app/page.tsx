@@ -97,8 +97,9 @@ export default function Home() {
 
   const totals = calculateTotals(cart);
 
-  const cheapestStore = totals[0];
-  const mostExpensiveStore = totals[totals.length - 1];
+  const cheapestStore = totals.length > 0 ? totals[0] : null;
+  const mostExpensiveStore =
+    totals.length > 0 ? totals[totals.length - 1] : null;
 
   const savings =
     cheapestStore && mostExpensiveStore
@@ -126,8 +127,7 @@ export default function Home() {
             decreaseQuantity={decreaseQuantity}
             highlightedItem={highlightedItem}
           />
-
-          {cheapestStore && (
+          {cart.length > 0 && cheapestStore && mostExpensiveStore && (
             <CartSummary
               store={cheapestStore.storeName}
               total={cheapestStore.total}
@@ -136,13 +136,13 @@ export default function Home() {
               itemCount={cart.length}
             />
           )}
-          <StoreComparison
-            storeTotals={totals}
-          />
-
-          <PriceMatrix
-            cart={cart}
-          />        </div>
+          {cart.length > 0 && (
+            <StoreComparison storeTotals={totals} />
+          )}
+          {cart.length > 0 && (
+            <PriceMatrix cart={cart} />
+          )}
+        </div>
       </main>
     </>
   );
