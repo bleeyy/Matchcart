@@ -15,10 +15,24 @@ import CartSummary from "@/components/dashboard/CartSummary";
 
 import Card from "@/components/ui/Card";
 
+import StoreSetup from "@/components/setup/StoreSetup";
+
 export default function Home() {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [selectedStoreIds, setSelectedStoreIds] = useState<number[]>([]);
+  const [setupComplete, setSetupComplete] = useState(false);
   const [toast, setToast] = useState("");
   const [highlightedItem, setHighlightedItem] = useState<number | null>(null);
+
+  const handleStoreSetup = (storeIds: number[]) => {
+    setSelectedStoreIds(storeIds);
+    setSetupComplete(true);
+
+    localStorage.setItem(
+      "selectedStores",
+      JSON.stringify(storeIds)
+    );
+  };
 
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
@@ -30,6 +44,17 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
+
+  useEffect(() => {
+    const savedStores = localStorage.getItem("selectedStores");
+
+    if (savedStores) {
+      const parsedStores = JSON.parse(savedStores);
+
+      setSelectedStoreIds(parsedStores);
+      setSetupComplete(true);
+    }
+  }, []);
 
   const removeItem = (id: number) => {
     setCart(cart.filter((item) => item.id !== id));
@@ -95,8 +120,10 @@ export default function Home() {
     );
   };
 
-  const totals = calculateTotals(cart);
-
+  const totals = calculateTotals(
+    cart,
+    selectedStoreIds
+  );
   const cheapestStore = totals.length > 0 ? totals[0] : null;
   const mostExpensiveStore =
     totals.length > 0 ? totals[totals.length - 1] : null;
@@ -105,6 +132,14 @@ export default function Home() {
     cheapestStore && mostExpensiveStore
       ? mostExpensiveStore.total - cheapestStore.total
       : 0;
+
+  if (!setupComplete) {
+    return (
+      <StoreSetup
+        onComplete={handleStoreSetup}
+      />
+    );
+  }
   return (
     <>
       {toast && (
@@ -140,7 +175,9 @@ export default function Home() {
             <StoreComparison storeTotals={totals} />
           )}
           {cart.length > 0 && (
-            <PriceMatrix cart={cart} />
+            <PriceMatrix cart={cart}
+              selectedStoreIds={selectedStoreIds}
+            />
           )}
         </div>
       </main>

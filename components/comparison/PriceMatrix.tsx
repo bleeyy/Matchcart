@@ -11,17 +11,18 @@ import { CartItem } from "@/types/cart";
 
 type PriceMatrixProps = {
     cart: CartItem[];
+    selectedStoreIds: number[];
 };
 
 export default function PriceMatrix({
     cart,
+    selectedStoreIds,
 }: PriceMatrixProps) {
-
+    const [expanded, setExpanded] = useState(false);
+    
     if (cart.length === 0) {
         return null;
     }
-    
-    const [expanded, setExpanded] = useState(false);
 
     return (
         <div className="mt-6 border border-[#DFDCCD] rounded-xl bg-white overflow-hidden">
@@ -59,14 +60,16 @@ export default function PriceMatrix({
                                         Item
                                     </th>
 
-                                    {stores.map((store) => (
-                                        <th
-                                            key={store.id}
-                                            className="px-4 py-3 text-center font-semibold text-[#191F24] whitespace-nowrap"
-                                        >
-                                            {store.name}
-                                        </th>
-                                    ))}
+                                    {stores
+                                        .filter((store) => selectedStoreIds.includes(store.id))
+                                        .map((store) => (
+                                            <th
+                                                key={store.id}
+                                                className="px-4 py-3 text-center font-semibold text-[#191F24] whitespace-nowrap"
+                                            >
+                                                {store.name}
+                                            </th>
+                                        ))}
                                 </tr>
                             </thead>
                             <tbody>
@@ -86,12 +89,14 @@ export default function PriceMatrix({
                                                 {product.name}
                                             </td>
 
-                                            {stores.map((store) => {
-                                                const price = prices.find(
-                                                    (item) =>
-                                                        item.productId === product.id &&
-                                                        item.storeId === store.id
-                                                );
+                                            {stores
+                                                .filter((store) => selectedStoreIds.includes(store.id))
+                                                .map((store) => {
+                                                    const price = prices.find(
+                                                        (item) =>
+                                                            item.productId === product.id &&
+                                                            item.storeId === store.id
+                                                    );
 
                                                 const isCheapest =
                                                     price &&
@@ -136,12 +141,14 @@ export default function PriceMatrix({
                                         Total Cart
                                     </td>
 
-                                    {stores.map((store) => {
-                                        const total = cart.reduce((sum, cartItem) => {
-                                            const price = prices.find(
-                                                (item) =>
-                                                    item.productId === cartItem.productId &&
-                                                    item.storeId === store.id
+                                    {stores
+                                        .filter((store) => selectedStoreIds.includes(store.id))
+                                        .map((store) => {
+                                            const total = cart.reduce((sum, cartItem) => {
+                                                const price = prices.find(
+                                                    (item) =>
+                                                        item.productId === cartItem.productId &&
+                                                        item.storeId === store.id
                                             );
 
                                             return sum + (price?.price ?? 0) * cartItem.quantity;

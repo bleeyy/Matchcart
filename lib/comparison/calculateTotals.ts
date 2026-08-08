@@ -8,29 +8,33 @@ export type StoreTotal = {
   total: number;
 };
 
-export function calculateTotals(cart: CartItem[]): StoreTotal[] {
-  const totals = stores.map((store) => {
-
+export function calculateTotals(
+  cart: CartItem[],
+  selectedStoreIds: number[]
+): StoreTotal[] {
+  const totals = stores
+    .filter((store) => selectedStoreIds.includes(store.id))
+    .map((store) => {
       let total = 0;
 
       cart.forEach((item) => {
-          const productPrice = prices.find(
-              (price) =>
-                  price.productId === item.productId &&
-                  price.storeId === store.id
-          );
+        const productPrice = prices.find(
+          (price) =>
+            price.productId === item.productId &&
+            price.storeId === store.id
+        );
 
-          if (productPrice) {
-              total += productPrice.price * item.quantity;
-          }
+        if (productPrice) {
+          total += productPrice.price * item.quantity;
+        }
       });
 
-    return {
-      storeId: store.id,
-      storeName: store.name,
-      total,
-    };
-  });
+      return {
+        storeId: store.id,
+        storeName: store.name,
+        total,
+      };
+    });
 
   return totals.sort((a, b) => a.total - b.total);
 
