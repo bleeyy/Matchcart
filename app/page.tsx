@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CartItem } from "@/types/cart";
 
 import Header from "@/components/layout/Header";
@@ -13,9 +13,12 @@ import StoreComparison from "@/components/comparison/StoreComparison";
 import PriceMatrix from "@/components/comparison/PriceMatrix";
 import CartSummary from "@/components/dashboard/CartSummary";
 
-import Card from "@/components/ui/Card";
-
 import StoreSetup from "@/components/setup/StoreSetup";
+
+import StoreSettings from "@/components/setup/StoreSettings";
+import { Settings } from "lucide-react";
+
+import SplashScreen from "@/components/layout/SplashScreen";
 
 export default function Home() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -23,6 +26,11 @@ export default function Home() {
   const [setupComplete, setSetupComplete] = useState(false);
   const [toast, setToast] = useState("");
   const [highlightedItem, setHighlightedItem] = useState<number | null>(null);
+  const [showStoreSettings, setShowStoreSettings] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  const finishSplash = useCallback(() => {
+    setShowSplash(false);
+  }, []);
 
   const handleStoreSetup = (storeIds: number[]) => {
     setSelectedStoreIds(storeIds);
@@ -34,6 +42,14 @@ export default function Home() {
     );
   };
 
+  const handleStoreSettingsSave = (storeIds: number[]) => {
+    setSelectedStoreIds(storeIds);
+
+    localStorage.setItem(
+      "selectedStores",
+      JSON.stringify(storeIds)
+    );
+  };
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) {
@@ -142,19 +158,27 @@ export default function Home() {
   }
   return (
     <>
+      <SplashScreen onFinish={finishSplash} />
       {toast && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-black text-white px-5 py-3 rounded-lg shadow-lg z-50">
           {toast}
         </div>
       )}
-      <main className="min-h-screen bg-gray-100 flex justify-center items-start pt-20">
-        <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-lg">
-          <Card>
-            <Header />
-          </Card>
+      <main className="min-h-screen bg-[#DFDCCD] flex justify-center">
+        <div className="w-full max-w-lg px-4 py-6 sm:px-6">
+          <Header />
           <ProductSearch
             onSelect={handleProductSelect}
           />
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => setShowStoreSettings(true)}
+              className="flex items-center gap-2 text-sm font-semibold text-[#3B4954] hover:text-[#191F24]"
+            >
+              <Settings size={17} />
+              Edit Stores
+            </button>
+          </div>
           <Cart
             cart={cart}
             removeItem={removeItem}
@@ -180,6 +204,13 @@ export default function Home() {
             />
           )}
         </div>
+        {showStoreSettings && (
+          <StoreSettings
+            selectedStoreIds={selectedStoreIds}
+            onSave={handleStoreSettingsSave}
+            onClose={() => setShowStoreSettings(false)}
+          />
+        )}
       </main>
     </>
   );

@@ -1,6 +1,8 @@
 import { CartItem as CartItemType } from "@/types/cart";
 import CartItem from "./CartItem";
 
+import EmptyCart from "./EmptyCart";
+
 type CartProps = {
   cart: CartItemType[];
   removeItem: (id: number) => void;
@@ -30,22 +32,25 @@ export default function Cart({
         </div>
       </div>
       {cart.length === 0 ? (
-        <p className="text-gray-500">
-          Add items to start comparing prices.
-        </p>
-      ) : (
-        <ul className="space-y-2">
-          {cart.map((item) => (
-            <CartItem
-              key={item.id}
-              item={item}
-              removeItem={removeItem}
-              increaseQuantity={increaseQuantity}
-              decreaseQuantity={decreaseQuantity}
-              highlighted={highlightedItem === item.id}
-            />
-          ))}
-        </ul>
+        <EmptyCart
+          onStartShopping={() => {
+            document
+              .querySelector<HTMLInputElement>('input[placeholder="Search products..."]')
+              ?.focus();
+          }}
+        />
+      ) : (<ul className="space-y-3">
+        {cart.map((item) => (
+          <CartItem
+            key={item.id}
+            item={item}
+            removeItem={removeItem}
+            increaseQuantity={increaseQuantity}
+            decreaseQuantity={decreaseQuantity}
+            highlighted={highlightedItem === item.id}
+          />
+        ))}
+      </ul>
       )}
     </>
   );
