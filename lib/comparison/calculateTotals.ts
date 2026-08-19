@@ -1,5 +1,4 @@
 import { CartItem } from "@/types/cart";
-import { prices } from "@/lib/data/prices";
 import { stores } from "@/lib/data/stores";
 
 export type StoreTotal = {
@@ -8,9 +7,21 @@ export type StoreTotal = {
   total: number;
 };
 
+type PriceData = {
+  productId: number;
+  storeId: number;
+  price: number;
+  currency: string;
+  source: string;
+  updatedAt: string;
+  regularPrice: number | null;
+  promoPrice: number | null;
+};
+
 export function calculateTotals(
   cart: CartItem[],
-  selectedStoreIds: number[]
+  selectedStoreIds: number[],
+  prices: PriceData[]
 ): StoreTotal[] {
   const totals = stores
     .filter((store) => selectedStoreIds.includes(store.id))

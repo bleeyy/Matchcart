@@ -6,20 +6,47 @@ import { ChevronDown } from "lucide-react";
 
 import { stores } from "@/lib/data/stores";
 import { products } from "@/lib/data/products";
-import { prices } from "@/lib/data/prices";
 import { CartItem } from "@/types/cart";
+
+type PriceData = {
+
+    productId: number;
+    storeId: number;
+    price: number;
+    currency: string;
+    source: string;
+    updatedAt: string;
+    regularPrice: number | null;
+    promoPrice: number | null;
+};
 
 type PriceMatrixProps = {
     cart: CartItem[];
     selectedStoreIds: number[];
+    prices: PriceData[];
 };
 
 export default function PriceMatrix({
     cart,
     selectedStoreIds,
+    prices
 }: PriceMatrixProps) {
     const [expanded, setExpanded] = useState(false);
-    
+    const latestUpdatedAt = prices.reduce<string | null>(
+        (latest, price) => {
+            if (!latest) return price.updatedAt;
+
+            return new Date(price.updatedAt) > new Date(latest)
+                ? price.updatedAt
+                : latest;
+        },
+        null
+    );
+
+    const hasLivePrices = prices.some(
+        (price) => price.source !== "seed"
+    );
+
     if (cart.length === 0) {
         return null;
     }
@@ -35,9 +62,13 @@ export default function PriceMatrix({
                         Price Breakdown
                     </h2>
 
-                    <p className="text-sm text-[#3B4954]">
-                        Compare item prices across stores
-                    </p>
+                    {latestUpdatedAt && (
+                        <p className="mt-1 text-xs text-[#3B4954]/70">
+                            {hasLivePrices
+                                ? `Prices updated ${new Date(latestUpdatedAt).toLocaleDateString()}`
+                                : "Using sample pricing data"}
+                        </p>
+                    )}
                 </div>
 
                 <ChevronDown
@@ -98,39 +129,53 @@ export default function PriceMatrix({
                                                             item.storeId === store.id
                                                     );
 
-                                                const isCheapest =
-                                                    price &&
-                                                    price.price ===
-                                                    Math.min(
-                                                        ...prices
-                                                            .filter(
-                                                                (item) =>
-                                                                    item.productId === product.id
-                                                            )
-                                                            .map((item) => item.price)
+                                                    const selectedStorePrices = prices.filter(
+                                                        (item) =>
+                                                            item.productId === product.id &&
+                                                            selectedStoreIds.includes(item.storeId)
                                                     );
 
-                                                return (
-                                                    <td
-                                                        key={store.id}
-                                                        className="px-4 py-3 text-center"
-                                                    >
-                                                        {price ? (
-                                                            <span
-                                                                className={
-                                                                    isCheapest
-                                                                        ? "bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold"
-                                                                        : "text-[#3B4954]"
-                                                                }
-                                                            >
-                                                                ${price.price.toFixed(2)}
-                                                            </span>
-                                                        ) : (
-                                                            "N/A"
-                                                        )}
-                                                    </td>
-                                                );
-                                            })}
+                                                    const cheapestSelectedPrice = Math.min(
+                                                        ...selectedStorePrices.map((item) => item.price)
+                                                    );
+
+                                                    const isCheapest =
+                                                        price?.price === cheapestSelectedPrice;
+
+                                                    const isOnSale =
+                                                        price &&
+                                                        price.promoPrice !== null &&
+                                                        price.regularPrice !== null &&
+                                                        price.promoPrice < price.regularPrice;
+
+                                                    return (
+                                                        <td
+                                                            key={store.id}
+                                                            className="px-4 py-3 text-center"
+                                                        >
+                                                            {price ? (
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <span
+                                                                        className={
+                                                                            isCheapest
+                                                                                ? "rounded-full bg-green-100 px-3 py-1 font-semibold text-green-700"
+                                                                                : "text-[#3B4954]"
+                                                                        }
+                                                                    >
+                                                                        ${price.price.toFixed(2)}
+                                                                    </span>
+
+                                                                    {isOnSale && (
+                                                                        <span className="text-xs font-medium text-[#EF846C]">
+                                                                            Sale
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                "N/A"
+                                                            )}                                                    </td>
+                                                    );
+                                                })}
                                         </tr>
                                     );
                                 })}
@@ -149,20 +194,20 @@ export default function PriceMatrix({
                                                     (item) =>
                                                         item.productId === cartItem.productId &&
                                                         item.storeId === store.id
+                                                );
+
+                                                return sum + (price?.price ?? 0) * cartItem.quantity;
+                                            }, 0);
+
+                                            return (
+                                                <td
+                                                    key={store.id}
+                                                    className="px-4 py-4 text-center font-bold text-[#191F24]"
+                                                >
+                                                    ${total.toFixed(2)}
+                                                </td>
                                             );
-
-                                            return sum + (price?.price ?? 0) * cartItem.quantity;
-                                        }, 0);
-
-                                        return (
-                                            <td
-                                                key={store.id}
-                                                className="px-4 py-4 text-center font-bold text-[#191F24]"
-                                            >
-                                                ${total.toFixed(2)}
-                                            </td>
-                                        );
-                                    })}
+                                        })}
                                 </tr>
                             </tfoot>
                         </table>
