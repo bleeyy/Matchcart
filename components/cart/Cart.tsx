@@ -35,7 +35,7 @@ export default function Cart({
         <EmptyCart
           onStartShopping={() => {
             document
-              .querySelector<HTMLInputElement>('input[placeholder="Search products..."]')
+              .querySelector<HTMLInputElement>('input[placeholder="Add an item to your list..."]')
               ?.focus();
           }}
         />

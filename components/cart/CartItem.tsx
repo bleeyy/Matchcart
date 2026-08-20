@@ -51,7 +51,7 @@ export default function CartItem({
             type="button"
             onClick={() => decreaseQuantity(item.id)}
             disabled={item.quantity === 1}
-            className="flex h-11 w-11 items-center justify-center rounded-l-xl text-[#243239] transition hover:bg-[#ded6c9] disabled:cursor-not-allowed disabled:opacity-30"
+            className="flex h-11 w-11 items-center justify-center rounded-l-xl text-[#243239] transition hover:bg-[#ded6c9] active:scale-90 disabled:cursor-not-allowed disabled:opacity-30"
             aria-label={`Decrease ${item.name} quantity`}
           >
             <Minus size={18} />
@@ -64,7 +64,7 @@ export default function CartItem({
           <button
             type="button"
             onClick={() => increaseQuantity(item.id)}
-            className="flex h-11 w-11 items-center justify-center rounded-r-xl text-[#243239] transition hover:bg-[#ee806c]/25"
+            className="flex h-11 w-11 items-center justify-center rounded-r-xl text-[#243239] transition hover:bg-[#ee806c]/25 active:scale-90"
             aria-label={`Increase ${item.name} quantity`}
           >
             <Plus size={18} />

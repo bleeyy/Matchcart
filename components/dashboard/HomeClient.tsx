@@ -16,7 +16,7 @@ import CartSummary from "@/components/dashboard/CartSummary";
 import StoreSetup from "@/components/setup/StoreSetup";
 
 import StoreSettings from "@/components/setup/StoreSettings";
-import { Settings } from "lucide-react";
+import { Check, Settings } from "lucide-react";
 
 import SplashScreen from "@/components/layout/SplashScreen";
 
@@ -128,6 +128,9 @@ export default function HomeClient({ prices }: HomeClientProps) {
                 quantity: 1,
             },
         ]);
+
+        setToast(`Nice pick. ${product.name} added.`);
+        setTimeout(() => setToast(""), 1600);
     };
 
     const increaseQuantity = (id: number) => {
@@ -207,8 +210,12 @@ export default function HomeClient({ prices }: HomeClientProps) {
         <>
             {showSplash && <SplashScreen onFinish={finishSplash} />}
             {toast && (
-                <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-black text-white px-5 py-3 rounded-lg shadow-lg z-50">
-                    {toast}
+                <div
+                    role="status"
+                    className="toast-pop fixed top-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[#243239] px-5 py-3 text-sm font-bold text-[#fffdf8] shadow-lg"
+                >
+                    <Check size={16} className="text-[#b8c8a4]" />
+                    <span>{toast}</span>
                 </div>
             )}
             <main className="flex min-h-screen justify-center px-4 sm:px-6">
