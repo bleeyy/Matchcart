@@ -20,22 +20,10 @@ import { Check, Settings } from "lucide-react";
 
 import SplashScreen from "@/components/layout/SplashScreen";
 
-type HomeClientPrice = {
-    id: number;
-    price: number;
-    currency: string;
-    source: string;
-    updated_at: string;
-    regular_price: number | null;
-    promo_price: number | null;
-    store_products: {
-        product_id: number;
-        store_id: number;
-    }[];
-};
+import type { MatchCartPrice } from "@/lib/data/priceRepository";
 
 type HomeClientProps = {
-    prices: HomeClientPrice[];
+  prices: MatchCartPrice[];
 };
 
 export default function HomeClient({ prices }: HomeClientProps) {
@@ -159,35 +147,14 @@ export default function HomeClient({ prices }: HomeClientProps) {
         );
     };
 
-    const normalizedPrices = prices
-        .map((item) => {
-            const storeProduct = item.store_products[0];
-
-            if (!storeProduct) {
-                return null;
-            }
-
-            return {
-                productId: storeProduct.product_id,
-                storeId: storeProduct.store_id,
-                price: item.price,
-                currency: item.currency,
-                source: item.source,
-                updatedAt: item.updated_at,
-                regularPrice: item.regular_price,
-                promoPrice: item.promo_price,
-            };
-        })
-        .filter((item): item is NonNullable<typeof item> => item !== null);
-
-    const hasLivePrices = normalizedPrices.some(
+    const hasLivePrices = prices.some(
         (price) => price.source !== "seed"
     );
 
     const totals = calculateTotals(
         cart,
         selectedStoreIds,
-        normalizedPrices
+        prices
     );
 
     const cheapestStore = totals.length > 0 ? totals[0] : null;
@@ -257,7 +224,7 @@ export default function HomeClient({ prices }: HomeClientProps) {
                         <PriceMatrix
                             cart={cart}
                             selectedStoreIds={selectedStoreIds}
-                            prices={normalizedPrices}
+                            prices={prices}
                         />
                     )}
                 </div>
