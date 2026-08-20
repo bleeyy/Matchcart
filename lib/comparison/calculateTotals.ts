@@ -5,6 +5,7 @@ export type StoreTotal = {
   storeId: number;
   storeName: string;
   total: number;
+  missingItems: number;
 };
 
 type PriceData = {
@@ -27,7 +28,7 @@ export function calculateTotals(
     .filter((store) => selectedStoreIds.includes(store.id))
     .map((store) => {
       let total = 0;
-
+      let missingItems = 0;
       cart.forEach((item) => {
         const productPrice = prices.find(
           (price) =>
@@ -37,6 +38,8 @@ export function calculateTotals(
 
         if (productPrice) {
           total += productPrice.price * item.quantity;
+        } else {
+          missingItems += 1;
         }
       });
 
@@ -44,6 +47,7 @@ export function calculateTotals(
         storeId: store.id,
         storeName: store.name,
         total,
+        missingItems,
       };
     });
 

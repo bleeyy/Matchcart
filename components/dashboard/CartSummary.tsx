@@ -7,7 +7,9 @@ type CartSummaryProps = {
   savings: number;
   comparedTo: string;
   itemCount: number;
+  dataStatus: "sample" | "live";
 };
+
 
 export default function CartSummary({
   store,
@@ -15,6 +17,7 @@ export default function CartSummary({
   savings,
   comparedTo,
   itemCount,
+  dataStatus,
 }: CartSummaryProps) {
   return (
     <Card className="mt-6 space-y-5">
@@ -40,7 +43,12 @@ export default function CartSummary({
         <p className="text-sm text-[#3B4954]">
           Estimated total for {itemCount} items
         </p>
-      </div>
+
+        <p className="text-xs text-[#3B4954]/70">
+          {dataStatus === "live"
+            ? "Prices from connected retailers"
+            : "Using sample pricing data"}
+        </p>      </div>
 
 
       {savings > 0 && (

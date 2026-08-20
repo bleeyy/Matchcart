@@ -61,15 +61,19 @@ export default function PriceMatrix({
                     <h2 className="text-xl font-bold text-[#191F24]">
                         Price Breakdown
                     </h2>
+                    <p className="text-sm text-[#3B4954]">
+                        Compare item prices across stores
+                    </p>
 
                     {latestUpdatedAt && (
                         <p className="mt-1 text-xs text-[#3B4954]/70">
                             {hasLivePrices
-                                ? `Prices updated ${new Date(latestUpdatedAt).toLocaleDateString()}`
+                                ? `Prices updated ${new Date(
+                                    latestUpdatedAt
+                                ).toLocaleDateString()}`
                                 : "Using sample pricing data"}
                         </p>
-                    )}
-                </div>
+                    )}                </div>
 
                 <ChevronDown
                     className={`transition-transform duration-300 ${expanded ? "rotate-180" : ""

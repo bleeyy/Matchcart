@@ -174,6 +174,11 @@ export default function HomeClient({ prices }: HomeClientProps) {
             };
         })
         .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    const hasLivePrices = normalizedPrices.some(
+        (price) => price.source !== "seed"
+    );
+
     const totals = calculateTotals(
         cart,
         selectedStoreIds,
@@ -233,6 +238,7 @@ export default function HomeClient({ prices }: HomeClientProps) {
                             savings={savings}
                             comparedTo={mostExpensiveStore.storeName}
                             itemCount={cart.length}
+                            dataStatus={hasLivePrices ? "live" : "sample"}
                         />
                     )}
                     {cart.length > 0 && (

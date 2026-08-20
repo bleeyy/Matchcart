@@ -17,9 +17,16 @@ export default function StoreComparison({
     return null;
   }
 
-  const cheapestTotal = Math.min(
-    ...storeTotals.map((store) => store.total)
+  const completeStoreTotals = storeTotals.filter(
+    (store) => store.missingItems === 0
   );
+
+  const cheapestTotal =
+    completeStoreTotals.length > 0
+      ? Math.min(
+        ...completeStoreTotals.map((store) => store.total)
+      )
+      : null;
 
   const [expanded, setExpanded] = useState(false);
 
@@ -55,7 +62,9 @@ export default function StoreComparison({
           {storeTotals.map((store, index) => (
             <div
               key={store.storeName}
-              className={`flex justify-between border rounded-lg p-3 ${store.total === cheapestTotal
+              className={`flex justify-between border rounded-lg p-3 ${cheapestTotal !== null &&
+                store.total === cheapestTotal &&
+                store.missingItems === 0
                 ? "border-green-500 bg-green-50"
                 : ""
                 }`}
@@ -65,17 +74,23 @@ export default function StoreComparison({
                   {index + 1}. {store.storeName}
                 </p>
 
-                {index === 0 ? (
+                {store.missingItems > 0 ? (
+                  <p className="text-xs text-amber-600">
+                    {store.missingItems} item
+                    {store.missingItems === 1 ? "" : "s"} missing price
+                  </p>
+                ) : index === 0 ? (
                   <p className="text-sm text-green-700">
                     Lowest Total
                   </p>
                 ) : (
                   <p className="text-sm text-[#3B4954]">
-                    +${(store.total - cheapestTotal).toFixed(2)}
+                    {cheapestTotal !== null
+                      ? `+$${(store.total - cheapestTotal).toFixed(2)}`
+                      : "—"}
                   </p>
                 )}
               </div>
-
               <span className="font-bold text-black">
                 ${store.total.toFixed(2)}
               </span>
