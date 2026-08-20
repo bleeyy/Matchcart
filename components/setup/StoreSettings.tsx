@@ -32,22 +32,22 @@ export default function StoreSettings({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center">
-      <div className="w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#243239]/45 sm:items-center">
+      <div className="w-full rounded-t-[1.5rem] border border-[#ded6c9] bg-[#fffdf8] p-6 shadow-[0_20px_55px_rgba(36,50,57,0.2)] sm:max-w-md sm:rounded-[1.5rem]">
         <div className="flex justify-between items-center mb-5">
           <div>
-            <h2 className="text-xl font-bold text-[#191F24]">
+            <h2 className="font-[family-name:var(--font-display)] text-2xl text-[#243239]">
               Your Stores
             </h2>
 
-            <p className="text-sm text-[#3B4954] mt-1">
+            <p className="mt-1 text-sm text-[#68736f]">
               Choose which stores MatchCart compares.
             </p>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-[#DFDCCD]/40"
+            className="rounded-full p-2 text-[#68736f] transition hover:bg-[#f1eadf] hover:text-[#243239]"
             aria-label="Close store settings"
           >
             <X size={20} />

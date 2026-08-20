@@ -10,12 +10,12 @@ export default function Card({
   return (
     <div
       className={`
-        bg-white
-        rounded-2xl
-        shadow-sm
+        bg-[#fffdf8]
+        rounded-[1.35rem]
         border
-        border-gray-200
+        border-[#ded6c9]
         p-5
+        shadow-[0_12px_32px_rgba(82,66,44,0.07)]
         ${className}
       `}
     >

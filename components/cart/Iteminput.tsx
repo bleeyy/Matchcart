@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { products } from "@/lib/data/products";
 
 type ItemInputProps = {

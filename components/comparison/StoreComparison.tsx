@@ -12,6 +12,7 @@ type StoreComparisonProps = {
 export default function StoreComparison({
   storeTotals,
 }: StoreComparisonProps) {
+  const [expanded, setExpanded] = useState(false);
 
   if (storeTotals.length === 0) {
     return null;
@@ -28,22 +29,20 @@ export default function StoreComparison({
       )
       : null;
 
-  const [expanded, setExpanded] = useState(false);
-
   return (
-    <div className="mt-6 border border-[#DFDCCD] rounded-xl bg-white overflow-hidden">
+    <div className="mt-6 overflow-hidden rounded-[1.35rem] border border-[#ded6c9] bg-[#fffdf8] shadow-[0_10px_28px_rgba(82,66,44,0.05)]">
 
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex justify-between items-center p-4"
       >
         <div className="text-left">
-          <h2 className="text-xl font-bold text-[#191F24]">
-            Store Comparison
+          <h2 className="font-[family-name:var(--font-display)] text-2xl text-[#243239]">
+            The store showdown
           </h2>
 
-          <p className="text-sm text-[#3B4954]">
-            What we found to be the cheapest grocery carts!
+          <p className="text-sm text-[#68736f]">
+            A quick look at what your whole list costs.
           </p>
         </div>
 

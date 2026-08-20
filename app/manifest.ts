@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Compare grocery prices across the stores you shop at.",
     start_url: "/",
     display: "standalone",
-    background_color: "#DFDCCD",
-    theme_color: "#191F24",
+    background_color: "#f8f4ed",
+    theme_color: "#243239",
     orientation: "portrait",
     icons: [
       {

@@ -52,16 +52,16 @@ export default function PriceMatrix({
     }
 
     return (
-        <div className="mt-6 border border-[#DFDCCD] rounded-xl bg-white overflow-hidden">
+        <div className="mt-6 overflow-hidden rounded-[1.35rem] border border-[#ded6c9] bg-[#fffdf8] shadow-[0_10px_28px_rgba(82,66,44,0.05)]">
             <button
                 onClick={() => setExpanded(!expanded)}
                 className="w-full flex justify-between items-center p-4"
             >
                 <div className="text-left">
-                    <h2 className="text-xl font-bold text-[#191F24]">
-                        Price Breakdown
+                    <h2 className="font-[family-name:var(--font-display)] text-2xl text-[#243239]">
+                        Every item, side by side
                     </h2>
-                    <p className="text-sm text-[#3B4954]">
+                    <p className="text-sm text-[#68736f]">
                         Compare item prices across stores
                     </p>
 
@@ -91,7 +91,7 @@ export default function PriceMatrix({
                         <table className="min-w-max border-collapse">
                             <thead>
                                 <tr className="border-b border-[#DFDCCD]">
-                                    <th className="sticky left-0 bg-white px-4 py-3 text-left font-semibold text-[#191F24]">
+                                    <th className="sticky left-0 bg-[#fffdf8] px-4 py-3 text-left font-bold text-[#243239]">
                                         Item
                                     </th>
 
@@ -100,7 +100,7 @@ export default function PriceMatrix({
                                         .map((store) => (
                                             <th
                                                 key={store.id}
-                                                className="px-4 py-3 text-center font-semibold text-[#191F24] whitespace-nowrap"
+                                                className="whitespace-nowrap px-4 py-3 text-center font-bold text-[#243239]"
                                             >
                                                 {store.name}
                                             </th>

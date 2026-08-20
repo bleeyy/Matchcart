@@ -12,14 +12,14 @@ export default function Button({
   className = "",
 }: ButtonProps) {
   const baseStyles =
-    "px-5 py-3 rounded-xl font-semibold transition-all duration-200 active:scale-95";
+    "px-5 py-3 rounded-2xl font-semibold transition-all duration-200 active:scale-95";
 
   const variants = {
     primary:
-      "bg-[#EF846C] text-[#191F24] hover:opacity-90",
+      "bg-[#ee806c] text-[#243239] shadow-[0_8px_18px_rgba(215,94,85,0.18)] hover:-translate-y-0.5 hover:bg-[#d75e55]",
     
     secondary:
-      "border border-[#3B4954] text-[#191F24] hover:bg-[#DFDCCD]",
+      "border border-[#ded6c9] text-[#243239] hover:bg-[#f1eadf]",
   };
 
   return (

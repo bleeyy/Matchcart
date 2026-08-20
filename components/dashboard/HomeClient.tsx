@@ -71,7 +71,7 @@ export default function HomeClient({ prices }: HomeClientProps) {
     useEffect(() => {
         const savedCart = localStorage.getItem("cart");
         if (savedCart) {
-            setCart(JSON.parse(savedCart));
+            setTimeout(() => setCart(JSON.parse(savedCart)), 0);
         }
     }, []);
 
@@ -85,8 +85,10 @@ export default function HomeClient({ prices }: HomeClientProps) {
         if (savedStores) {
             const parsedStores = JSON.parse(savedStores);
 
-            setSelectedStoreIds(parsedStores);
-            setSetupComplete(true);
+            setTimeout(() => {
+                setSelectedStoreIds(parsedStores);
+                setSetupComplete(true);
+            }, 0);
         }
     }, []);
 
@@ -203,22 +205,22 @@ export default function HomeClient({ prices }: HomeClientProps) {
     }
     return (
         <>
-            <SplashScreen onFinish={finishSplash} />
+            {showSplash && <SplashScreen onFinish={finishSplash} />}
             {toast && (
                 <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-black text-white px-5 py-3 rounded-lg shadow-lg z-50">
                     {toast}
                 </div>
             )}
-            <main className="min-h-screen bg-[#DFDCCD] flex justify-center">
-                <div className="w-full max-w-lg px-4 py-6 sm:px-6">
+            <main className="flex min-h-screen justify-center px-4 sm:px-6">
+                <div className="w-full max-w-xl py-6 sm:py-10">
                     <Header />
                     <ProductSearch
                         onSelect={handleProductSelect}
                     />
-                    <div className="flex justify-end mb-4">
+                    <div className="mb-5 flex justify-end">
                         <button
                             onClick={() => setShowStoreSettings(true)}
-                            className="flex items-center gap-2 text-sm font-semibold text-[#3B4954] hover:text-[#191F24]"
+                            className="flex items-center gap-2 text-sm font-bold text-[#68736f] transition hover:text-[#d75e55]"
                         >
                             <Settings size={17} />
                             Edit Stores

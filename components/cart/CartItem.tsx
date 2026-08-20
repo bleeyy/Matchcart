@@ -20,17 +20,17 @@ export default function CartItem({
     <li
       className={`rounded-2xl border p-4 transition-all duration-300 ${
         highlighted
-          ? "scale-[1.02] border-[#EF846C] bg-[#EF846C]/10"
-          : "border-[#DFDCCD] bg-white"
+          ? "scale-[1.02] border-[#ee806c] bg-[#ee806c]/10"
+          : "border-[#ded6c9] bg-[#fffdf8] shadow-[0_8px_24px_rgba(82,66,44,0.05)]"
       }`}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="truncate font-semibold text-[#191F24]">
+          <p className="truncate font-bold text-[#243239]">
             {item.name}
           </p>
 
-          <p className="mt-1 text-sm text-[#3B4954]">
+          <p className="mt-1 text-sm text-[#68736f]">
             Grocery item
           </p>
         </div>
@@ -38,7 +38,7 @@ export default function CartItem({
         <button
           type="button"
           onClick={() => removeItem(item.id)}
-          className="rounded-lg p-2 text-[#3B4954] transition hover:bg-red-50 hover:text-red-600"
+          className="rounded-lg p-2 text-[#68736f] transition hover:bg-[#ee806c]/10 hover:text-[#d75e55]"
           aria-label={`Remove ${item.name}`}
         >
           <Trash2 size={18} />
@@ -46,25 +46,25 @@ export default function CartItem({
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <div className="flex items-center rounded-xl border border-[#DFDCCD] bg-[#DFDCCD]/30">
+        <div className="flex items-center rounded-xl border border-[#ded6c9] bg-[#f1eadf]">
           <button
             type="button"
             onClick={() => decreaseQuantity(item.id)}
             disabled={item.quantity === 1}
-            className="flex h-11 w-11 items-center justify-center rounded-l-xl text-[#191F24] transition hover:bg-[#DFDCCD]/60 disabled:cursor-not-allowed disabled:opacity-30"
+            className="flex h-11 w-11 items-center justify-center rounded-l-xl text-[#243239] transition hover:bg-[#ded6c9] disabled:cursor-not-allowed disabled:opacity-30"
             aria-label={`Decrease ${item.name} quantity`}
           >
             <Minus size={18} />
           </button>
 
-          <span className="flex h-11 min-w-11 items-center justify-center px-2 font-semibold text-[#191F24]">
+          <span className="flex h-11 min-w-11 items-center justify-center px-2 font-bold text-[#243239]">
             {item.quantity}
           </span>
 
           <button
             type="button"
             onClick={() => increaseQuantity(item.id)}
-            className="flex h-11 w-11 items-center justify-center rounded-r-xl text-[#191F24] transition hover:bg-[#EF846C]/20"
+            className="flex h-11 w-11 items-center justify-center rounded-r-xl text-[#243239] transition hover:bg-[#ee806c]/25"
             aria-label={`Increase ${item.name} quantity`}
           >
             <Plus size={18} />

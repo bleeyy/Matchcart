@@ -20,13 +20,13 @@ export default function Cart({
 }: CartProps) {
   return (
     <>
-      <div className="flex items-center justify-between mb-5">
+      <div className="mb-5 flex items-end justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#191F24]">
-            Your Cart
+          <h2 className="font-[family-name:var(--font-display)] text-3xl tracking-[-0.03em] text-[#243239]">
+            Your list
           </h2>
 
-          <p className="text-sm text-[#3B4954]">
+          <p className="text-sm text-[#68736f]">
             {cart.length} {cart.length === 1 ? "item" : "items"}
           </p>
         </div>

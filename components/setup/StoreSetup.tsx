@@ -28,16 +28,17 @@ export default function StoreSetup({
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center items-start pt-20 px-4">
-      <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-lg">
+    <div className="flex min-h-screen items-start justify-center px-4 pb-10 pt-12 sm:pt-20">
+      <div className="w-full max-w-lg rounded-[1.5rem] border border-[#ded6c9] bg-[#fffdf8] p-6 shadow-[0_20px_55px_rgba(82,66,44,0.1)] sm:p-9">
 
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#191F24]">
-            Compare prices your way
+        <div className="mb-8">
+          <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-[#d75e55]">Welcome to MatchCart</p>
+          <h1 className="font-[family-name:var(--font-display)] text-4xl leading-none tracking-[-0.035em] text-[#243239] sm:text-5xl">
+            Let&apos;s pick your pantry crew.
           </h1>
 
-          <p className="text-[#3B4954] mt-2">
-            Which stores do you shop at?
+          <p className="mt-4 max-w-sm leading-6 text-[#68736f]">
+            Choose the stores you actually visit and we&apos;ll keep every comparison close to home.
           </p>
         </div>
 
@@ -49,10 +50,10 @@ export default function StoreSetup({
               <button
                 key={store.id}
                 onClick={() => toggleStore(store.id)}
-                className={`w-full flex items-center justify-between border rounded-xl p-4 transition ${
+                className={`flex w-full items-center justify-between rounded-2xl border p-4 text-left transition ${
                   selected
-                    ? "border-[#EF846C] bg-[#EF846C]/10"
-                    : "border-[#DFDCCD] hover:bg-gray-50"
+                    ? "border-[#ee806c] bg-[#ee806c]/10 shadow-[0_7px_15px_rgba(215,94,85,0.1)]"
+                    : "border-[#ded6c9] hover:bg-[#f1eadf]"
                 }`}
               >
                 <span className="font-semibold text-[#191F24]">
@@ -81,10 +82,10 @@ export default function StoreSetup({
         <button
           onClick={handleContinue}
           disabled={selectedStores.length === 0}
-          className={`w-full mt-8 rounded-xl py-3 font-semibold transition ${
+          className={`mt-8 w-full rounded-2xl py-3.5 font-bold transition ${
             selectedStores.length > 0
-              ? "bg-[#191F24] text-white hover:opacity-90"
-              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              ? "bg-[#243239] text-[#fffdf8] hover:-translate-y-0.5 hover:bg-[#3f594a]"
+              : "bg-[#e9e3d9] text-[#a5a59c]"
           }`}
         >
           Continue

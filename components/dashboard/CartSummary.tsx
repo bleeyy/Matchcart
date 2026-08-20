@@ -20,27 +20,27 @@ export default function CartSummary({
   dataStatus,
 }: CartSummaryProps) {
   return (
-    <Card className="mt-6 space-y-5">
+    <Card className="mt-6 space-y-5 border-[#ee806c]/35 bg-[#fff8f1]">
 
       <div className="flex items-center gap-2">
-        <Trophy className="text-[#EF846C]" />
+        <Trophy className="text-[#d75e55]" />
 
-        <h2 className="text-xl font-bold text-[#191F24]">
-          Best Value
+        <h2 className="font-[family-name:var(--font-display)] text-2xl text-[#243239]">
+          Your best basket
         </h2>
       </div>
 
 
       <div>
-        <p className="text-lg font-semibold text-[#3B4954]">
+        <p className="text-lg font-bold text-[#3f594a]">
           {store}
         </p>
 
-        <p className="text-3xl font-bold text-[#191F24]">
+        <p className="font-[family-name:var(--font-display)] text-4xl text-[#243239]">
           ${total.toFixed(2)}
         </p>
 
-        <p className="text-sm text-[#3B4954]">
+        <p className="text-sm text-[#68736f]">
           Estimated total for {itemCount} items
         </p>
 

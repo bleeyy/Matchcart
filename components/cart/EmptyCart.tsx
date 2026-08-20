@@ -8,32 +8,32 @@ export default function EmptyCart({
   onStartShopping,
 }: EmptyCartProps) {
   return (
-    <div className="py-10 text-center">
-      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#CEB9BC]/40">
+    <div className="rounded-[1.35rem] border border-dashed border-[#cfc5b6] bg-[#f1eadf]/45 px-5 py-10 text-center">
+      <div className="mx-auto mb-5 flex h-16 w-16 rotate-3 items-center justify-center rounded-[1.2rem] bg-[#b8c8a4]/55">
         <ShoppingCart
           size={30}
           strokeWidth={1.8}
-          className="text-[#3B4954]"
+          className="text-[#3f594a]"
         />
       </div>
 
-      <h3 className="text-xl font-bold text-[#191F24]">
-        Start building your cart
+      <h3 className="font-[family-name:var(--font-display)] text-2xl text-[#243239]">
+        Your list is still a blank page.
       </h3>
 
-      <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#3B4954]">
-        Add groceries to see prices across the stores you selected.
+      <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#68736f]">
+        Add a few staples and we&apos;ll turn the blank page into a better-priced shop.
       </p>
 
       <button
         onClick={onStartShopping}
-        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#EF846C] px-5 py-3 font-semibold text-[#191F24] transition-transform duration-200 active:scale-95"
+        className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-[#ee806c] px-5 py-3 font-bold text-[#243239] shadow-[0_8px_18px_rgba(215,94,85,0.18)] transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
       >
         <Search size={18} />
         Search for products
       </button>
 
-      <div className="mx-auto mt-8 max-w-sm border-t border-[#DFDCCD] pt-6 text-left">
+      <div className="mx-auto mt-8 max-w-sm border-t border-[#ded6c9] pt-6 text-left">
         <p className="mb-3 text-sm font-semibold text-[#191F24]">
           How MatchCart works
         </p>
