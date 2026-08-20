@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
+import ServiceWorkerRegistration from "@/components/layout/ServiceWorkerRegistration";
 
 
 const bodyFont = DM_Sans({
@@ -36,7 +37,10 @@ export default function RootLayout({
       lang="en"
       className={`${bodyFont.variable} ${displayFont.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ServiceWorkerRegistration />
+        {children}
+      </body>
     </html>
   );
 }
