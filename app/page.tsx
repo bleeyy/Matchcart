@@ -1,8 +1,8 @@
 import HomeClient from "@/components/dashboard/HomeClient";
-import { getPrices } from "@/lib/data/getPrices";
+import { getCurrentPrices } from "@/lib/data/priceRepository";
 
 export default async function Page() {
-  const prices = await getPrices();
+  const prices = await getCurrentPrices();
 
   return (
     <HomeClient
