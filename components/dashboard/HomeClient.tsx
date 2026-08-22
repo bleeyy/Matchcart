@@ -1,5 +1,6 @@
 "use client";
 
+import { Product } from "@/types/product";
 import { useCallback, useEffect, useState } from "react";
 import { CartItem } from "@/types/cart";
 
@@ -23,7 +24,7 @@ import SplashScreen from "@/components/layout/SplashScreen";
 import type { MatchCartPrice } from "@/lib/data/priceRepository";
 
 type HomeClientProps = {
-  prices: MatchCartPrice[];
+    prices: MatchCartPrice[];
 };
 
 export default function HomeClient({ prices }: HomeClientProps) {
@@ -84,10 +85,7 @@ export default function HomeClient({ prices }: HomeClientProps) {
         setCart(cart.filter((item) => item.id !== id));
     };
 
-    const handleProductSelect = (product: {
-        id: number;
-        name: string;
-    }) => {
+    const handleProductSelect = (product: Product) => {
         const existingItem = cart.find(
             (item) => item.productId === product.id
         );
@@ -150,6 +148,8 @@ export default function HomeClient({ prices }: HomeClientProps) {
     const hasLivePrices = prices.some(
         (price) => price.source !== "seed"
     );
+
+    const priceStatus = hasLivePrices ? "live" : "sample";
 
     const totals = calculateTotals(
         cart,
@@ -218,7 +218,10 @@ export default function HomeClient({ prices }: HomeClientProps) {
                         />
                     )}
                     {cart.length > 0 && (
-                        <StoreComparison storeTotals={totals} />
+                        <StoreComparison
+                            storeTotals={totals}
+                            dataStatus={priceStatus}
+                        />
                     )}
                     {cart.length > 0 && (
                         <PriceMatrix

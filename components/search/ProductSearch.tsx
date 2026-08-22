@@ -3,13 +3,10 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { products } from "@/lib/data/products";
+import { Product } from "@/types/product";
 
 type ProductSearchProps = {
-  onSelect: (product: {
-    id: number;
-    name: string;
-    category: string;
-  }) => void;
+  onSelect: (product: Product) => void;
 };
 
 export default function ProductSearch({

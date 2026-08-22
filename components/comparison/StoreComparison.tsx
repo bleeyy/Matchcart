@@ -7,10 +7,12 @@ import { StoreTotal } from "@/lib/comparison/calculateTotals";
 
 type StoreComparisonProps = {
   storeTotals: StoreTotal[];
+  dataStatus: "live" | "sample";
 };
 
 export default function StoreComparison({
   storeTotals,
+  dataStatus,
 }: StoreComparisonProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -43,6 +45,12 @@ export default function StoreComparison({
 
           <p className="text-sm text-[#68736f]">
             A quick look at what your whole list costs.
+          </p>
+
+          <p className="mt-1 text-xs text-[#68736f]/70">
+            {dataStatus === "live"
+              ? "Using connected retailer pricing"
+              : "Using sample pricing data"}
           </p>
         </div>
 
@@ -78,10 +86,9 @@ export default function StoreComparison({
                     {store.missingItems} item
                     {store.missingItems === 1 ? "" : "s"} missing price
                   </p>
-                ) : index === 0 ? (
-                  <p className="text-sm text-green-700">
-                    Lowest Total
-                  </p>
+                ) : cheapestTotal !== null && store.total === cheapestTotal ? (<p className="text-sm text-green-700">
+                  Lowest Total
+                </p>
                 ) : (
                   <p className="text-sm text-[#3B4954]">
                     {cheapestTotal !== null
