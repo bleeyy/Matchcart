@@ -38,29 +38,12 @@ body::before {
   background-position: center top;
   background-size: 48px 48px;
   content: "";
-  mask-image: linear-gradient(to bottom, black, transparent 48%);
+  mask-image: linear-gradient(to bottom, black 0%, rgba(0, 0, 0, 0.18) 100%);
 }
 
 main {
   position: relative;
   isolation: isolate;
-}
-
-.background-mark {
-  position: absolute;
-  z-index: 0;
-  pointer-events: none;
-  border-color: rgba(215, 94, 85, 0.22);
-}
-
-.background-mark-cross {
-  top: 58rem;
-  right: 13%;
-  width: 2.5rem;
-  height: 2.5rem;
-  opacity: 0.55;
-  background: linear-gradient(var(--coral), var(--coral)) center / 1px 100% no-repeat, linear-gradient(90deg, var(--coral), var(--coral)) center / 100% 1px no-repeat;
-  animation: cross-drift 7s ease-in-out infinite;
 }
 
 button,

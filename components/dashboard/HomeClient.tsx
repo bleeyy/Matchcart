@@ -422,8 +422,6 @@ export default function HomeClient({
             )}
 
             <main className="flex min-h-screen justify-center overflow-clip px-4 sm:px-6">
-                <div aria-hidden="true" className="background-mark background-mark-cross" />
-
                 <div className="relative z-10 w-full max-w-xl py-8 sm:py-12 md:max-w-4xl lg:max-w-6xl">
                     <Header hasCompared={hasCompared} />
 
