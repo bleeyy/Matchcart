@@ -31,8 +31,7 @@ export async function getCurrentPrices(): Promise<
    * Supabase limits a single query to 1,000 rows.
    *
    * Our database contains thousands of prices, so we
-   * fetch them in batches to make sure products such as
-   * Bananas are not accidentally left out.
+   * fetch them in batches.
    */
   const PAGE_SIZE = 1000;
 
@@ -40,6 +39,8 @@ export async function getCurrentPrices(): Promise<
     id: number;
     store_product_id: number;
     price: number;
+    regular_price: number | null;
+    promo_price: number | null;
     currency: string;
     source: string;
     updated_at: string;
@@ -55,13 +56,15 @@ export async function getCurrentPrices(): Promise<
       .from("prices")
       .select(
         `
-                id,
-                store_product_id,
-                price,
-                currency,
-                source,
-                updated_at
-                `
+          id,
+          store_product_id,
+          price,
+          regular_price,
+          promo_price,
+          currency,
+          source,
+          updated_at
+        `
       )
       .order("updated_at", {
         ascending: false,
@@ -166,17 +169,17 @@ export async function getCurrentPrices(): Promise<
     const {
       data,
       error:
-      storeProductError,
+        storeProductError,
     } = await supabase
       .from("store_products")
       .select(
         `
-                id,
-                store_id,
-                product_id,
-                variant_id,
-                size_id
-                `
+          id,
+          store_id,
+          product_id,
+          variant_id,
+          size_id
+        `
       )
       .in("id", batch);
 
@@ -214,8 +217,10 @@ export async function getCurrentPrices(): Promise<
       }
     >();
 
-  for (const storeProduct of
-    storeProducts) {
+  for (
+    const storeProduct of
+    storeProducts
+  ) {
     storeProductMap.set(
       storeProduct.id,
       storeProduct
@@ -231,7 +236,9 @@ export async function getCurrentPrices(): Promise<
       MatchCartPrice
     >();
 
-  for (const row of allPriceRows) {
+  for (
+    const row of allPriceRows
+  ) {
     const storeProduct =
       storeProductMap.get(
         row.store_product_id
@@ -261,10 +268,18 @@ export async function getCurrentPrices(): Promise<
         row.updated_at,
 
       regularPrice:
-        null,
+        row.regular_price == null
+          ? null
+          : Number(
+              row.regular_price
+            ),
 
       promoPrice:
-        null,
+        row.promo_price == null
+          ? null
+          : Number(
+              row.promo_price
+            ),
 
       sizeId:
         storeProduct.size_id,
@@ -277,9 +292,9 @@ export async function getCurrentPrices(): Promise<
       price.storeId,
       price.productId,
       price.variantId ??
-      "none",
+        "none",
       price.sizeId ??
-      "none",
+        "none",
     ].join(":");
 
     /*
@@ -316,18 +331,22 @@ export async function getCurrentPrices(): Promise<
 
   console.log(
     "Milk prices:",
-    result.filter(
-      (price) =>
-        price.productId === 1
-    ).slice(0, 4)
+    result
+      .filter(
+        (price) =>
+          price.productId === 1
+      )
+      .slice(0, 4)
   );
 
   console.log(
     "Banana prices:",
-    result.filter(
-      (price) =>
-        price.productId === 75
-    ).slice(0, 10)
+    result
+      .filter(
+        (price) =>
+          price.productId === 75
+      )
+      .slice(0, 10)
   );
 
   console.log(
@@ -336,9 +355,9 @@ export async function getCurrentPrices(): Promise<
       (price) =>
         price.productId === 75 &&
         price.variantId ===
-        20281 &&
+          20281 &&
         price.sizeId ===
-        10623
+          10623
     )
   );
 
@@ -348,7 +367,6 @@ export async function getCurrentPrices(): Promise<
 
   return result;
 }
-
 
 /*
  * Saves or updates a retailer product and
@@ -519,6 +537,12 @@ export async function saveRetailerPrice(
         price:
           retailerPrice.price,
 
+        regular_price:
+          retailerPrice.regularPrice,
+
+        promo_price:
+          retailerPrice.promoPrice,
+
         currency:
           retailerPrice.currency,
 
@@ -549,6 +573,12 @@ export async function saveRetailerPrice(
 
         price:
           retailerPrice.price,
+
+        regular_price:
+          retailerPrice.regularPrice,
+
+        promo_price:
+          retailerPrice.promoPrice,
 
         currency:
           retailerPrice.currency,
