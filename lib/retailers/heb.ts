@@ -1,117 +1,150 @@
 import {
-  searchHEBProducts,
+    searchHEBProducts,
 } from "@/lib/heb/client";
 
 import type {
-  RetailerAdapter,
-  RetailerPrice,
+    HebProduct,
+} from "@/lib/heb/client";
+
+import type {
+    RetailerAdapter,
+    RetailerPrice,
 } from "@/lib/retailers/types";
 
 function getBestHEBProduct(
-  searchTerm: string,
-  products: Awaited<
-    ReturnType<typeof searchHEBProducts>
-  >
-) {
-  const queryWords = searchTerm
-    .toLowerCase()
-    .split(/\s+/)
-    .filter(Boolean);
+    searchTerm: string,
+    products: HebProduct[]
+): HebProduct | null {
+    const queryWords =
+        searchTerm
+            .toLowerCase()
+            .split(/\s+/)
+            .filter(Boolean);
 
-  const ranked = products
-    .map((product) => {
-      const name =
-        product.name.toLowerCase();
+    const ranked =
+        products
+            .map((product) => {
+                const name =
+                    product.name.toLowerCase();
 
-      let score = 0;
+                let score = 0;
 
-      for (const word of queryWords) {
-        if (name.includes(word)) {
-          score++;
-        }
-      }
+                for (const word of queryWords) {
+                    if (name.includes(word)) {
+                        score++;
+                    }
+                }
 
-      return {
-        product,
-        score,
-      };
-    })
-    .sort((a, b) => b.score - a.score);
+                return {
+                    product,
+                    score,
+                };
+            })
+            .sort(
+                (a, b) =>
+                    b.score - a.score
+            );
 
-  return ranked[0]?.product ?? null;
+    return (
+        ranked[0]?.product ??
+        null
+    );
 }
 
 function convertHEBProduct(
-  product: Awaited<
-    ReturnType<typeof searchHEBProducts>
-  >[number]
+    product: HebProduct
 ): RetailerPrice | null {
-  if (!product.price || product.price <= 0) {
-    return null;
-  }
+    const price =
+        product.is_on_sale &&
+        product.sale_price !== null
+            ? product.sale_price
+            : product.price;
 
-  return {
-    externalProductId:
-      product.productId,
+    if (
+        price === null ||
+        price <= 0
+    ) {
+        return null;
+    }
 
-    productName:
-      product.name,
+    return {
+        externalProductId:
+            product.id,
 
-    brand:
-      product.brand,
+        productName:
+            product.name,
 
-    price:
-      product.price,
+        brand:
+            product.brand,
 
-    regularPrice:
-      product.regularPrice,
+        price,
 
-    promoPrice:
-      product.promoPrice,
+        regularPrice:
+            product.price,
 
-    currency: "USD",
+        promoPrice:
+            product.is_on_sale
+                ? product.sale_price
+                : null,
 
-    source: "heb",
+        currency:
+            "USD",
 
-    updatedAt:
-      new Date().toISOString(),
-  };
+        source:
+            "heb",
+
+        updatedAt:
+            new Date().toISOString(),
+    };
 }
 
-export const hebRetailer: RetailerAdapter = {
-  async searchProduct(
-    productName: string
-  ): Promise<RetailerPrice | null> {
-    const products =
-      await searchHEBProducts(
-        productName,
-        10
-      );
+export const hebRetailer:
+    RetailerAdapter = {
+    async searchProduct(
+        productName: string
+    ): Promise<RetailerPrice | null> {
+        const storeId =
+            process.env.HEB_STORE_ID ??
+            "543";
 
-    if (products.length === 0) {
-      return null;
-    }
+        const response =
+            await searchHEBProducts(
+                productName,
+                storeId,
+                1
+            );
 
-    const best =
-      getBestHEBProduct(
-        productName,
-        products
-      );
+        const products =
+            response.products ?? [];
 
-    if (!best) {
-      return null;
-    }
+        if (
+            products.length === 0
+        ) {
+            return null;
+        }
 
-    return convertHEBProduct(best);
-  },
+        const best =
+            getBestHEBProduct(
+                productName,
+                products
+            );
 
-  async getProductPrice(
-    externalProductId: string
-  ): Promise<RetailerPrice | null> {
-    /*
-     * H-E-B does not currently have a
-     * direct product lookup implemented.
-     */
-    return null;
-  },
+        if (!best) {
+            return null;
+        }
+
+        return convertHEBProduct(
+            best
+        );
+    },
+
+    async getProductPrice(
+        externalProductId: string
+    ): Promise<RetailerPrice | null> {
+        /*
+         * H-E-B does not currently have a
+         * direct product lookup implemented.
+         */
+        return null;
+    },
 };

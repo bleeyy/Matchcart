@@ -4,7 +4,7 @@ import {
 } from "next/server";
 
 import {
-    searchHebProducts,
+    searchHEBProducts,
 } from "@/lib/heb/client";
 
 export async function GET(
@@ -83,7 +83,7 @@ export async function GET(
         }
 
         const data =
-            await searchHebProducts(
+            await searchHEBProducts(
                 query,
                 storeId,
                 page
