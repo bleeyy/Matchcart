@@ -22,9 +22,11 @@ export default function StoreSetup({
   };
 
   const handleContinue = () => {
-    if (selectedStores.length === 0) return;
-
     onComplete(selectedStores);
+  };
+
+  const handleSkip = () => {
+    onComplete(stores.map((store) => store.id));
   };
 
   return (
@@ -32,13 +34,17 @@ export default function StoreSetup({
       <div className="w-full max-w-lg rounded-[1.5rem] border border-[#ded6c9] bg-[#fffdf8] p-6 shadow-[0_20px_55px_rgba(82,66,44,0.1)] sm:p-9">
 
         <div className="mb-8">
-          <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-[#d75e55]">Welcome to MatchCart</p>
+          <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-[#d75e55]">
+            Welcome to MatchCart
+          </p>
+
           <h1 className="font-[family-name:var(--font-display)] text-4xl leading-none tracking-[-0.035em] text-[#243239] sm:text-5xl">
-            Let&apos;s pick your pantry crew.
+            Where do you shop?
           </h1>
 
           <p className="mt-4 max-w-sm leading-6 text-[#68736f]">
-            Choose the stores you actually visit and we&apos;ll keep every comparison close to home.
+            Pick the stores you usually visit. We&apos;ll compare your grocery
+            list across them. You can change this anytime.
           </p>
         </div>
 
@@ -49,6 +55,7 @@ export default function StoreSetup({
             return (
               <button
                 key={store.id}
+                type="button"
                 onClick={() => toggleStore(store.id)}
                 className={`flex w-full items-center justify-between rounded-2xl border p-4 text-left transition ${
                   selected
@@ -61,9 +68,9 @@ export default function StoreSetup({
                 </span>
 
                 <div
-                  className={`w-6 h-6 rounded-full border flex items-center justify-center ${
+                  className={`flex h-6 w-6 items-center justify-center rounded-full border ${
                     selected
-                      ? "bg-[#EF846C] border-[#EF846C]"
+                      ? "border-[#EF846C] bg-[#EF846C]"
                       : "border-[#3B4954]"
                   }`}
                 >
@@ -80,6 +87,7 @@ export default function StoreSetup({
         </div>
 
         <button
+          type="button"
           onClick={handleContinue}
           disabled={selectedStores.length === 0}
           className={`mt-8 w-full rounded-2xl py-3.5 font-bold transition ${
@@ -88,7 +96,15 @@ export default function StoreSetup({
               : "bg-[#e9e3d9] text-[#a5a59c]"
           }`}
         >
-          Continue
+          Compare These Stores
+        </button>
+
+        <button
+          type="button"
+          onClick={handleSkip}
+          className="mt-3 w-full rounded-2xl py-3 text-sm font-semibold text-[#68736f] transition hover:bg-[#f1eadf] hover:text-[#243239]"
+        >
+          Skip for now
         </button>
 
       </div>

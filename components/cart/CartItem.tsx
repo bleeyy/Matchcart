@@ -1,4 +1,4 @@
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2, AlertCircle } from "lucide-react";
 import { CartItem as CartItemType } from "@/types/cart";
 
 type CartItemProps = {
@@ -16,6 +16,8 @@ export default function CartItem({
   decreaseQuantity,
   highlighted,
 }: CartItemProps) {
+  const needsSize = !item.sizeId;
+
   return (
     <li
       className={`rounded-2xl border p-4 transition-all duration-300 ${
@@ -26,13 +28,32 @@ export default function CartItem({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
+          {/* Main product name */}
           <p className="truncate font-bold text-[#243239]">
             {item.name}
           </p>
 
-          <p className="mt-1 text-sm text-[#68736f]">
-            Grocery item
-          </p>
+          {/* Variant */}
+          {item.variantName && (
+            <p className="mt-1 text-sm font-semibold text-[#3B4954]">
+              {item.variantName}
+            </p>
+          )}
+
+          {/* Size */}
+          {item.sizeLabel && (
+            <p className="mt-0.5 text-sm text-[#68736f]">
+              {item.sizeLabel}
+            </p>
+          )}
+
+          {/* No size selected */}
+          {needsSize && (
+            <div className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-amber-600">
+              <AlertCircle size={15} />
+              <span>Select a size to compare prices</span>
+            </div>
+          )}
         </div>
 
         <button

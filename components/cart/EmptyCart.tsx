@@ -26,6 +26,7 @@ export default function EmptyCart({
       </p>
 
       <button
+        type="button"
         onClick={onStartShopping}
         className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-[#ee806c] px-5 py-3 font-bold text-[#243239] shadow-[0_8px_18px_rgba(215,94,85,0.18)] transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
       >

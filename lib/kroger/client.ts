@@ -1,73 +1,140 @@
-const KROGER_BASE_URL = "https://api.kroger.com/v1";
+const KROGER_BASE_URL =
+    process.env.KROGER_BASE_URL ||
+    "https://api.kroger.com";
 
-type KrogerTokenResponse = {
-    access_token: string;
-    token_type: string;
-    expires_in: number;
-};
+const KROGER_LOCATION_ID =
+    process.env.KROGER_LOCATION_ID;
 
 let cachedToken: {
     accessToken: string;
     expiresAt: number;
 } | null = null;
 
-export async function getKrogerAccessToken() {
-    if (cachedToken && cachedToken.expiresAt > Date.now()) {
+export async function getKrogerToken() {
+    if (
+        cachedToken &&
+        cachedToken.expiresAt > Date.now()
+    ) {
         return cachedToken.accessToken;
     }
 
-    const clientId = process.env.KROGER_CLIENT_ID;
-    const clientSecret = process.env.KROGER_CLIENT_SECRET;
+    const clientId =
+        process.env.KROGER_CLIENT_ID;
+
+    const clientSecret =
+        process.env.KROGER_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
-        throw new Error("Missing Kroger API credentials.");
+        throw new Error(
+            "Missing Kroger API credentials"
+        );
     }
 
     const credentials = Buffer.from(
         `${clientId}:${clientSecret}`
     ).toString("base64");
 
-    console.log({
-        hasClientId: Boolean(clientId),
-        clientIdLength: clientId?.length,
-        hasClientSecret: Boolean(clientSecret),
-        clientSecretLength: clientSecret?.length,
-    });
-
-    const body = new URLSearchParams({
-        grant_type: "client_credentials",
-        scope: "product.compact",
-    });
-
     const response = await fetch(
-        `${KROGER_BASE_URL}/connect/oauth2/token`,
+        `${KROGER_BASE_URL}/v1/connect/oauth2/token`,
         {
             method: "POST",
             headers: {
                 Authorization: `Basic ${credentials}`,
-                "Content-Type": "application/x-www-form-urlencoded",
+                "Content-Type":
+                    "application/x-www-form-urlencoded",
                 Accept: "application/json",
             },
-            body: body.toString(),
+            body:
+                "grant_type=client_credentials&scope=product.compact",
             cache: "no-store",
         }
     );
-    
-    const responseText = await response.text();
+
+    const responseText =
+        await response.text();
 
     if (!response.ok) {
         throw new Error(
-            `Kroger token request failed: ${response.status} - ${responseText}`
+            `Kroger token error: ${response.status} ${responseText}`
         );
     }
 
-    const data =
-        JSON.parse(responseText) as KrogerTokenResponse;
+    const data = JSON.parse(responseText);
 
     cachedToken = {
         accessToken: data.access_token,
-        expiresAt: Date.now() + (data.expires_in - 60) * 1000,
+        expiresAt:
+            Date.now() +
+            (data.expires_in - 60) * 1000,
     };
 
     return data.access_token;
+}
+
+export async function searchKrogerProducts(
+    term: string,
+    locationId?: string
+) {
+    const token = await getKrogerToken();
+
+    /*
+     * Use the explicitly provided location ID first.
+     * Otherwise fall back to KROGER_LOCATION_ID
+     * from .env.local.
+     */
+    const effectiveLocationId =
+        locationId || KROGER_LOCATION_ID;
+
+    if (!effectiveLocationId) {
+        throw new Error(
+            "Missing KROGER_LOCATION_ID environment variable"
+        );
+    }
+
+    const params = new URLSearchParams();
+
+    params.set("filter.term", term);
+
+    params.set(
+        "filter.locationId",
+        effectiveLocationId
+    );
+
+    params.set("filter.limit", "10");
+
+    const url =
+        `${KROGER_BASE_URL}/v1/products?` +
+        params.toString();
+
+    console.log(
+        "Kroger Product Request:",
+        {
+            url,
+            searchTerm: term,
+            locationId: effectiveLocationId,
+            hasToken: Boolean(token),
+            tokenLength: token.length,
+        }
+    );
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+            "User-Agent": "MatchCart",
+        },
+        cache: "no-store",
+    });
+
+    const responseText =
+        await response.text();
+
+    if (!response.ok) {
+        throw new Error(
+            `Kroger Products API error: ${response.status} ${responseText}`
+        );
+    }
+
+    return JSON.parse(responseText);
 }

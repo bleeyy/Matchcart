@@ -2,10 +2,16 @@ export type RetailerPrice = {
   externalProductId: string;
   productName: string;
   brand: string | null;
+
   price: number;
+
   regularPrice: number | null;
   promoPrice: number | null;
+
   currency: string;
+
+  source: string;
+
   updatedAt: string;
 };
 
