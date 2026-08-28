@@ -933,7 +933,7 @@ export const products: Product[] = [
 
     productWithVariants(
         70,
-        "Tuna",
+        "Canned Tuna",
         "Canned Goods",
         [
             "Chunk Light",

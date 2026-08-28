@@ -20,7 +20,7 @@ export default function CartSummary({
   dataStatus,
 }: CartSummaryProps) {
   return (
-    <Card className="mt-6 space-y-5 border-[#ee806c]/35 bg-[#fff8f1]">
+    <Card className="comparison-reveal mt-6 space-y-5 border-[#ee806c]/35 bg-[#fff8f1]">
 
       <div className="flex items-center gap-2">
         <Trophy className="text-[#d75e55]" />

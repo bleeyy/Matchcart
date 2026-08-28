@@ -31,6 +31,15 @@ type HomeClientProps = {
 
 const DEFAULT_STORE_IDS = [1, 2, 3, 4];
 
+const SHOPPING_PROMPTS = [
+    "What are we cooking?",
+    "What is on the menu?",
+    "What is dinner dreaming of?",
+    "What needs a spot in the cart?",
+    "What are we bringing home?",
+    "What deliciousness are we planning?",
+];
+
 export default function HomeClient({
     prices,
 }: HomeClientProps) {
@@ -59,8 +68,26 @@ export default function HomeClient({
 
     const [isComparing, setIsComparing] = useState(false);
 
+    const [isCartMinimized, setIsCartMinimized] =
+        useState(false);
+
+    const [shoppingPrompt, setShoppingPrompt] = useState(
+        SHOPPING_PROMPTS[0]
+    );
+
     const finishSplash = useCallback(() => {
         setShowSplash(false);
+    }, []);
+
+    useEffect(() => {
+        const randomPrompt =
+            SHOPPING_PROMPTS[
+                Math.floor(
+                    Math.random() * SHOPPING_PROMPTS.length
+                )
+            ];
+
+        setShoppingPrompt(randomPrompt);
     }, []);
 
     /*
@@ -407,104 +434,111 @@ export default function HomeClient({
                 </div>
             )}
 
-            <main className="flex min-h-screen justify-center px-4 sm:px-6">
-                <div className="w-full max-w-xl py-6 sm:py-10">
-                    <Header />
+            <main className="flex min-h-screen justify-center overflow-clip px-4 sm:px-6">
+                <div aria-hidden="true" className="background-mark background-mark-cross" />
 
-                    <ProductSearch
-                        onSelect={handleProductSelect}
-                    />
+                <div className="relative z-10 w-full max-w-xl py-6 sm:py-10 md:max-w-4xl lg:max-w-6xl">
+                    <Header hasCompared={hasCompared} />
 
-                    <div className="mb-5 flex justify-end">
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setShowStoreSettings(
-                                    true
-                                )
-                            }
-                            className="flex items-center gap-2 text-sm font-bold text-[#68736f] transition hover:text-[#d75e55]"
-                        >
-                            <Settings size={17} />
+                    <section aria-labelledby="shop-heading" className="max-w-3xl">
+                        <div>
+                            <div className="mb-4 flex items-end justify-between gap-4">
+                                <div>
+                                    <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-[#d75e55]">
+                                        Fill your cart
+                                    </p>
 
-                            Edit Stores
-                        </button>
-                    </div>
+                                    <h2 id="shop-heading" className="font-[family-name:var(--font-display)] text-3xl tracking-[-0.03em] text-[#243239]">
+                                        {shoppingPrompt}
+                                    </h2>
+                                </div>
 
-                    <Cart
-                        cart={cart}
-                        removeItem={removeItem}
-                        increaseQuantity={
-                            increaseQuantity
-                        }
-                        decreaseQuantity={
-                            decreaseQuantity
-                        }
-                        highlightedItem={
-                            highlightedItem
-                        }
-                    />
+                                <span className="hidden pb-1 text-right text-xs text-[#8a918e] sm:block">
+                                    Search by name, type, or size
+                                </span>
+                            </div>
 
-                    {cart.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={
-                                handleComparePrices
-                            }
-                            disabled={isComparing}
-                            className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#243239] px-5 py-4 text-base font-bold text-[#fffdf8] shadow-[0_10px_24px_rgba(36,50,57,0.18)] transition hover:bg-[#34464f] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            <ShoppingCart size={19} />
-
-                            {isComparing
-                                ? "Comparing Prices..."
-                                : hasCompared
-                                ? "Recalculate Prices"
-                                : "Compare Prices"}
-                        </button>
-                    )}
-
-                    {hasCompared &&
-                        storeTotals &&
-                        cart.length > 0 &&
-                        cheapestStore &&
-                        mostExpensiveStore && (
-                            <CartSummary
-                                store={
-                                    cheapestStore.storeName
-                                }
-                                total={
-                                    cheapestStore.total
-                                }
-                                savings={savings}
-                                comparedTo={
-                                    mostExpensiveStore.storeName
-                                }
-                                itemCount={
-                                    totalItemCount
-                                }
-                                dataStatus={
-                                    priceStatus
-                                }
+                            <ProductSearch
+                                onSelect={handleProductSelect}
                             />
-                        )}
 
-                    {hasCompared &&
-                        storeTotals &&
-                        cart.length > 0 && (
-                            <StoreComparison
-                                storeTotals={
-                                    storeTotals
-                                }
+                            <div className="mt-5 flex items-start justify-between gap-4 pt-4">
+                                <p className="max-w-sm text-xs leading-relaxed text-[#8a918e]">
+                                    Prices are based on stores in the College Station, TX 77840 area and may vary by location, availability, promotions, and time.
+                                </p>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowStoreSettings(true)}
+                                    className="flex shrink-0 items-center gap-2 text-sm font-bold text-[#68736f] transition hover:text-[#d75e55]"
+                                >
+                                    <Settings size={17} />
+                                    Edit stores
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="mt-10">
+                            <Cart
                                 cart={cart}
-                                prices={
-                                    comparisonPrices
+                                removeItem={removeItem}
+                                increaseQuantity={increaseQuantity}
+                                decreaseQuantity={decreaseQuantity}
+                                highlightedItem={highlightedItem}
+                                isMinimized={isCartMinimized}
+                                onToggleMinimized={() =>
+                                    setIsCartMinimized(
+                                        (current) => !current
+                                    )
                                 }
-                                dataStatus={
-                                    priceStatus
+                                headerAction={
+                                    cart.length > 0 ? (
+                                        <span className="rounded-full bg-[#b8c8a4]/45 px-3 py-1.5 text-xs font-bold text-[#3f594a]">
+                                            {totalItemCount} total
+                                        </span>
+                                    ) : undefined
                                 }
                             />
-                        )}
+
+                            {cart.length > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={handleComparePrices}
+                                    disabled={isComparing}
+                                    className="mx-auto mt-6 flex min-h-11 w-fit items-center justify-center gap-2 rounded-2xl bg-[#243239] px-5 py-4 text-base font-bold text-[#fffdf8] shadow-[0_10px_24px_rgba(36,50,57,0.18)] transition hover:-translate-y-0.5 hover:bg-[#34464f] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <ShoppingCart size={19} />
+                                    {isComparing ? "Comparing prices..." : hasCompared ? "Recalculate prices" : "Compare prices"}
+                                </button>
+                            )}
+
+                            {hasCompared &&
+                                storeTotals &&
+                                cart.length > 0 &&
+                                cheapestStore &&
+                                mostExpensiveStore && (
+                                    <CartSummary
+                                        store={cheapestStore.storeName}
+                                        total={cheapestStore.total}
+                                        savings={savings}
+                                        comparedTo={mostExpensiveStore.storeName}
+                                        itemCount={totalItemCount}
+                                        dataStatus={priceStatus}
+                                    />
+                                )}
+
+                            {hasCompared &&
+                                storeTotals &&
+                                cart.length > 0 && (
+                                    <StoreComparison
+                                        storeTotals={storeTotals}
+                                        cart={cart}
+                                        prices={comparisonPrices}
+                                        dataStatus={priceStatus}
+                                    />
+                                )}
+                        </div>
+                    </section>
                 </div>
 
                 {showStoreSettings && (

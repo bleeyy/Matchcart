@@ -167,7 +167,7 @@ export default function ProductSearch({
             {/* Results */}
             {search &&
                 filteredProducts.length > 0 && (
-                    <div className="mt-2 overflow-hidden rounded-2xl border border-[#ded6c9] bg-[#fffdf8] shadow-[0_16px_35px_rgba(82,66,44,0.12)]">
+                    <div className="search-results-enter mt-2 overflow-hidden rounded-2xl border border-[#ded6c9] bg-[#fffdf8] shadow-[0_16px_35px_rgba(82,66,44,0.12)]">
                         {filteredProducts.map(
                             (product) => {
                                 const hasVariants =
@@ -246,7 +246,7 @@ export default function ProductSearch({
 
                                                             clearSearch();
                                                         }}
-                                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ee806c] text-xl font-medium leading-none text-[#243239] shadow-sm transition-all duration-200 hover:scale-105 hover:bg-[#e87562] active:scale-95"
+                                                        className="flex h-11 w-11 items-center justify-center rounded-full bg-[#ee806c] text-xl font-medium leading-none text-[#243239] shadow-sm transition-all duration-200 hover:scale-105 hover:bg-[#e87562] active:scale-95"
                                                     >
                                                         +
                                                     </button>

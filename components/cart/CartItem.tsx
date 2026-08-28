@@ -20,7 +20,7 @@ export default function CartItem({
 
   return (
     <li
-      className={`rounded-2xl border p-4 transition-all duration-300 ${
+      className={`cart-item-enter rounded-2xl border p-4 transition-all duration-300 ${
         highlighted
           ? "scale-[1.02] border-[#ee806c] bg-[#ee806c]/10"
           : "border-[#ded6c9] bg-[#fffdf8] shadow-[0_8px_24px_rgba(82,66,44,0.05)]"
@@ -59,7 +59,7 @@ export default function CartItem({
         <button
           type="button"
           onClick={() => removeItem(item.id)}
-          className="rounded-lg p-2 text-[#68736f] transition hover:bg-[#ee806c]/10 hover:text-[#d75e55]"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-[#68736f] transition hover:bg-[#ee806c]/10 hover:text-[#d75e55]"
           aria-label={`Remove ${item.name}`}
         >
           <Trash2 size={18} />

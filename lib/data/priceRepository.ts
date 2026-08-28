@@ -1,4 +1,8 @@
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import {
+  createClient,
+  createAdminClient,
+} from "@/lib/supabase/server";
+
 import type { Price } from "@/types/price";
 
 export type MatchCartPrice = Price & {
@@ -8,77 +12,338 @@ export type MatchCartPrice = Price & {
   variantId: number | null;
 };
 
-export async function getCurrentPrices(): Promise<MatchCartPrice[]> {
-  const supabase = await createClient();
+export async function getCurrentPrices(): Promise<
+  MatchCartPrice[]
+> {
+  const supabase = createAdminClient();
 
-  const { data, error } = await supabase
-    .from("prices")
-    .select(`
-      price,
-      currency,
-      source,
-      updated_at,
-      store_products!inner (
-        product_id,
-        store_id,
-        variant_id,
-        size_id
+  /*
+   * Supabase limits a single query to 1,000 rows.
+   *
+   * Our database contains thousands of prices, so we
+   * fetch them in batches to make sure products such as
+   * Bananas are not accidentally left out.
+   */
+  const PAGE_SIZE = 1000;
+
+  const allPriceRows: {
+    id: number;
+    store_product_id: number;
+    price: number;
+    currency: string;
+    source: string;
+    updated_at: string;
+  }[] = [];
+
+  let from = 0;
+
+  while (true) {
+    const {
+      data: priceRows,
+      error: priceError,
+    } = await supabase
+      .from("prices")
+      .select(
+        `
+                id,
+                store_product_id,
+                price,
+                currency,
+                source,
+                updated_at
+                `
       )
-    `)
-    .order("updated_at", { ascending: false });
+      .order("updated_at", {
+        ascending: false,
+      })
+      .range(
+        from,
+        from + PAGE_SIZE - 1
+      );
 
-  if (error) {
-    throw new Error(`Failed to fetch current prices: ${error.message}`);
+    if (priceError) {
+      throw new Error(
+        `Failed to fetch prices: ${priceError.message}`
+      );
+    }
+
+    if (
+      !priceRows ||
+      priceRows.length === 0
+    ) {
+      break;
+    }
+
+    allPriceRows.push(
+      ...priceRows
+    );
+
+    console.log(
+      `Loaded ${priceRows.length} prices (${allPriceRows.length} total)`
+    );
+
+    /*
+     * If fewer than PAGE_SIZE rows were returned,
+     * we've reached the end.
+     */
+    if (
+      priceRows.length <
+      PAGE_SIZE
+    ) {
+      break;
+    }
+
+    from += PAGE_SIZE;
+  }
+
+  if (allPriceRows.length === 0) {
+    console.log(
+      "Supabase returned 0 rows from prices table."
+    );
+
+    return [];
+  }
+
+  console.log(
+    `Supabase returned ${allPriceRows.length} total price rows.`
+  );
+
+  /*
+   * Get all store_product IDs referenced by the prices.
+   */
+  const storeProductIds = [
+    ...new Set(
+      allPriceRows
+        .map(
+          (row) =>
+            row.store_product_id
+        )
+        .filter(
+          (
+            id
+          ): id is number =>
+            typeof id ===
+            "number"
+        )
+    ),
+  ];
+
+  /*
+   * Supabase also limits this .in() query if we
+   * send thousands of IDs at once.
+   *
+   * Fetch store_products in batches too.
+   */
+  const storeProducts: {
+    id: number;
+    store_id: number;
+    product_id: number;
+    variant_id: number | null;
+    size_id: number | null;
+  }[] = [];
+
+  for (
+    let i = 0;
+    i < storeProductIds.length;
+    i += PAGE_SIZE
+  ) {
+    const batch =
+      storeProductIds.slice(
+        i,
+        i + PAGE_SIZE
+      );
+
+    const {
+      data,
+      error:
+      storeProductError,
+    } = await supabase
+      .from("store_products")
+      .select(
+        `
+                id,
+                store_id,
+                product_id,
+                variant_id,
+                size_id
+                `
+      )
+      .in("id", batch);
+
+    if (storeProductError) {
+      throw new Error(
+        `Failed to fetch store products: ${storeProductError.message}`
+      );
+    }
+
+    if (data) {
+      storeProducts.push(
+        ...data
+      );
+    }
+  }
+
+  console.log(
+    `Supabase returned ${storeProducts.length} matching store_products.`
+  );
+
+  /*
+   * Create:
+   *
+   * store_product_id -> store_product
+   */
+  const storeProductMap =
+    new Map<
+      number,
+      {
+        id: number;
+        store_id: number;
+        product_id: number;
+        variant_id: number | null;
+        size_id: number | null;
+      }
+    >();
+
+  for (const storeProduct of
+    storeProducts) {
+    storeProductMap.set(
+      storeProduct.id,
+      storeProduct
+    );
   }
 
   /*
-   * Keep only the newest price for each
-   * store + product + variant + size combination.
+   * Build final MatchCartPrice objects.
    */
-  const latestPrices = new Map<string, MatchCartPrice>();
+  const latestPrices =
+    new Map<
+      string,
+      MatchCartPrice
+    >();
 
-  for (const row of data ?? []) {
-    const storeProduct = Array.isArray(row.store_products)
-      ? row.store_products[0]
-      : row.store_products;
+  for (const row of allPriceRows) {
+    const storeProduct =
+      storeProductMap.get(
+        row.store_product_id
+      );
 
     if (!storeProduct) {
       continue;
     }
 
     const price: MatchCartPrice = {
-      productId: storeProduct.product_id,
-      storeId: storeProduct.store_id,
-      price: Number(row.price),
-      currency: row.currency,
-      source: row.source,
-      updatedAt: row.updated_at,
-      regularPrice: null,
-      promoPrice: null,
-      sizeId: storeProduct.size_id,
-      variantId: storeProduct.variant_id,
+      productId:
+        storeProduct.product_id,
+
+      storeId:
+        storeProduct.store_id,
+
+      price:
+        Number(row.price),
+
+      currency:
+        row.currency,
+
+      source:
+        row.source,
+
+      updatedAt:
+        row.updated_at,
+
+      regularPrice:
+        null,
+
+      promoPrice:
+        null,
+
+      sizeId:
+        storeProduct.size_id,
+
+      variantId:
+        storeProduct.variant_id,
     };
 
     const key = [
       price.storeId,
       price.productId,
-      price.variantId ?? "none",
-      price.sizeId ?? "none",
+      price.variantId ??
+      "none",
+      price.sizeId ??
+      "none",
     ].join(":");
 
     /*
-     * Because the query is ordered by updated_at
-     * descending, the first row we encounter is
-     * the newest price for this combination.
+     * Because the rows are ordered newest first,
+     * the first row for each combination is the
+     * current price.
      */
-    if (!latestPrices.has(key)) {
-      latestPrices.set(key, price);
+    if (
+      !latestPrices.has(key)
+    ) {
+      latestPrices.set(
+        key,
+        price
+      );
     }
   }
 
-  return Array.from(latestPrices.values());
+  const result =
+    Array.from(
+      latestPrices.values()
+    );
+
+  /*
+   * Debugging.
+   */
+  console.log(
+    "========== MATCHCART SUPABASE PRICES =========="
+  );
+
+  console.log(
+    "Total final prices:",
+    result.length
+  );
+
+  console.log(
+    "Milk prices:",
+    result.filter(
+      (price) =>
+        price.productId === 1
+    ).slice(0, 4)
+  );
+
+  console.log(
+    "Banana prices:",
+    result.filter(
+      (price) =>
+        price.productId === 75
+    ).slice(0, 10)
+  );
+
+  console.log(
+    "Regular 1 lb banana prices:",
+    result.filter(
+      (price) =>
+        price.productId === 75 &&
+        price.variantId ===
+        20281 &&
+        price.sizeId ===
+        10623
+    )
+  );
+
+  console.log(
+    "==============================================="
+  );
+
+  return result;
 }
 
+
+/*
+ * Saves or updates a retailer product and
+ * its current price in Supabase.
+ */
 export async function saveRetailerPrice(
   productId: number,
   storeId: number,
@@ -96,32 +361,65 @@ export async function saveRetailerPrice(
     updatedAt: string;
   }
 ) {
-  const supabase = createAdminClient();
+  const supabase =
+    createAdminClient();
 
-  const { data: existingStoreProduct, error: lookupError } = await supabase
+  const {
+    data: existingStoreProduct,
+    error: lookupError,
+  } = await supabase
     .from("store_products")
     .select("id")
-    .eq("store_id", storeId)
-    .eq("external_id", retailerPrice.externalProductId)
+    .eq(
+      "store_id",
+      storeId
+    )
+    .eq(
+      "external_id",
+      retailerPrice.externalProductId
+    )
     .maybeSingle();
 
   if (lookupError) {
-    throw new Error(`Failed to find store product: ${lookupError.message}`);
+    throw new Error(
+      `Failed to find store product: ${lookupError.message}`
+    );
   }
 
-  let storeProductId: number | null = existingStoreProduct?.id ?? null;
+  let storeProductId:
+    | number
+    | null =
+    existingStoreProduct?.id ??
+    null;
 
   if (existingStoreProduct) {
-    const { error: updateError } = await supabase
+    const {
+      error: updateError,
+    } = await supabase
       .from("store_products")
       .update({
-        product_id: productId,
-        variant_id: variantId,
-        size_id: sizeId,
-        name: retailerPrice.productName,
-        brand: retailerPrice.brand,
+        product_id:
+          productId,
+
+        variant_id:
+          variantId,
+
+        size_id:
+          sizeId,
+
+        name:
+          retailerPrice.productName,
+
+        brand:
+          retailerPrice.brand,
+
+        updated_at:
+          retailerPrice.updatedAt,
       })
-      .eq("id", existingStoreProduct.id);
+      .eq(
+        "id",
+        existingStoreProduct.id
+      );
 
     if (updateError) {
       throw new Error(
@@ -131,154 +429,132 @@ export async function saveRetailerPrice(
   }
 
   if (!storeProductId) {
-    const { data: newStoreProduct, error: insertError } = await supabase
+    const {
+      data: newStoreProduct,
+      error: insertError,
+    } = await supabase
       .from("store_products")
       .insert({
-        product_id: productId,
-        store_id: storeId,
-        variant_id: variantId,
-        size_id: sizeId,
-        external_id: retailerPrice.externalProductId,
-        name: retailerPrice.productName,
-        brand: retailerPrice.brand,
+        product_id:
+          productId,
+
+        store_id:
+          storeId,
+
+        variant_id:
+          variantId,
+
+        size_id:
+          sizeId,
+
+        external_id:
+          retailerPrice.externalProductId,
+
+        name:
+          retailerPrice.productName,
+
+        brand:
+          retailerPrice.brand,
+
+        updated_at:
+          retailerPrice.updatedAt,
       })
       .select("id")
       .single();
 
     if (insertError) {
-      if (insertError.code === "23505") {
-        const {
-          data: concurrentProduct,
-          error: concurrentLookupError,
-        } = await supabase
-          .from("store_products")
-          .select("id")
-          .eq("store_id", storeId)
-          .eq("external_id", retailerPrice.externalProductId)
-          .maybeSingle();
-
-        if (concurrentLookupError || !concurrentProduct) {
-          throw new Error(
-            `Failed to recover existing store product: ${
-              concurrentLookupError?.message ?? insertError.message
-            }`
-          );
-        }
-
-        storeProductId = concurrentProduct.id;
-      } else {
-        throw new Error(
-          `Failed to create store product: ${insertError.message}`
-        );
-      }
-    } else {
-      storeProductId = newStoreProduct.id;
+      throw new Error(
+        `Failed to create store product: ${insertError.message}`
+      );
     }
+
+    storeProductId =
+      newStoreProduct.id;
   }
 
   if (!storeProductId) {
     throw new Error(
-      "Store product ID was not available when saving retailer price."
+      "Store product ID was not available."
     );
   }
 
-  const { data: existingPrice, error: existingPriceError } = await supabase
+  const {
+    data: existingPrice,
+    error: existingPriceError,
+  } = await supabase
     .from("prices")
     .select("id")
-    .eq("store_product_id", storeProductId)
-    .order("updated_at", { ascending: false })
+    .eq(
+      "store_product_id",
+      storeProductId
+    )
+    .order("updated_at", {
+      ascending: false,
+    })
     .limit(1)
     .maybeSingle();
 
   if (existingPriceError) {
     throw new Error(
-      `Failed to find existing retailer price: ${existingPriceError.message}`
+      `Failed to find existing price: ${existingPriceError.message}`
     );
   }
 
   if (existingPrice) {
-    const { error: updatePriceError } = await supabase
+    const {
+      error: updatePriceError,
+    } = await supabase
       .from("prices")
       .update({
-        price: retailerPrice.price,
-        currency: retailerPrice.currency,
-        source: retailerPrice.source,
-        updated_at: retailerPrice.updatedAt,
+        price:
+          retailerPrice.price,
+
+        currency:
+          retailerPrice.currency,
+
+        source:
+          retailerPrice.source,
+
+        updated_at:
+          retailerPrice.updatedAt,
       })
-      .eq("id", existingPrice.id);
+      .eq(
+        "id",
+        existingPrice.id
+      );
 
     if (updatePriceError) {
       throw new Error(
-        `Failed to update retailer price: ${updatePriceError.message}`
+        `Failed to update price: ${updatePriceError.message}`
       );
     }
   } else {
-    const { error: priceError } = await supabase.from("prices").insert({
-      store_product_id: storeProductId,
-      price: retailerPrice.price,
-      currency: retailerPrice.currency,
-      source: retailerPrice.source,
-      updated_at: retailerPrice.updatedAt,
-    });
+    const {
+      error: insertPriceError,
+    } = await supabase
+      .from("prices")
+      .insert({
+        store_product_id:
+          storeProductId,
 
-    if (priceError) {
-      if (priceError.code === "23505") {
-        const {
-          data: concurrentPrice,
-          error: concurrentPriceLookupError,
-        } = await supabase
-          .from("prices")
-          .select("id")
-          .eq("store_product_id", storeProductId)
-          .order("updated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        price:
+          retailerPrice.price,
 
-        if (concurrentPriceLookupError || !concurrentPrice) {
-          throw new Error(
-            `Failed to recover existing retailer price: ${
-              concurrentPriceLookupError?.message ?? priceError.message
-            }`
-          );
-        }
+        currency:
+          retailerPrice.currency,
 
-        const { error: concurrentUpdateError } = await supabase
-          .from("prices")
-          .update({
-            price: retailerPrice.price,
-            currency: retailerPrice.currency,
-            source: retailerPrice.source,
-            updated_at: retailerPrice.updatedAt,
-          })
-          .eq("id", concurrentPrice.id);
+        source:
+          retailerPrice.source,
 
-        if (concurrentUpdateError) {
-          throw new Error(
-            `Failed to update concurrent retailer price: ${concurrentUpdateError.message}`
-          );
-        }
-      } else {
-        throw new Error(
-          `Failed to save retailer price: ${priceError.message}`
-        );
-      }
+        updated_at:
+          retailerPrice.updatedAt,
+      });
+
+    if (insertPriceError) {
+      throw new Error(
+        `Failed to save price: ${insertPriceError.message}`
+      );
     }
-  }
-
-  const { error: historyError } = await supabase
-    .from("price_history")
-    .insert({
-      store_product_id: storeProductId,
-      price: retailerPrice.price,
-      regular_price: retailerPrice.regularPrice,
-      promo_price: retailerPrice.promoPrice,
-      currency: retailerPrice.currency,
-      source: retailerPrice.source,
-      recorded_at: retailerPrice.updatedAt,
-    });
-
-  if (historyError) {
-    throw new Error(`Failed to save price history: ${historyError.message}`);
   }
 
   return storeProductId;
