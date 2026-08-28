@@ -8,7 +8,7 @@ export default function EmptyCart({
   onStartShopping,
 }: EmptyCartProps) {
   return (
-    <div className="rounded-[1.35rem] border border-dashed border-[#cfc5b6] bg-[#f1eadf]/45 px-5 py-10 text-center">
+    <div className="rounded-xl border border-dashed border-[#cfc5b6] bg-[#f1eadf]/45 px-5 py-10 text-center">
       <div className="mx-auto mb-5 flex h-16 w-16 rotate-3 items-center justify-center rounded-[1.2rem] bg-[#b8c8a4]/55 transition-transform duration-300 hover:-rotate-3 hover:scale-105">
         <ShoppingCart
           size={30}

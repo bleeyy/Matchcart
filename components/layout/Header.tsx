@@ -11,7 +11,7 @@ export default function Header({
                 <span className="text-[#d75e55]">MatchCart</span>
             </div>
 
-            <h1 className="max-w-2xl font-[family-name:var(--font-display)] text-6xl leading-[0.88] tracking-[-0.055em] text-[#243239] sm:text-7xl lg:text-8xl">
+            <h1 className="max-w-2xl font-[family-name:var(--font-display)] text-5xl leading-[0.92] tracking-[-0.045em] text-[#243239] sm:text-6xl lg:text-7xl">
                 Spend less on the things you actually buy.
             </h1>
 

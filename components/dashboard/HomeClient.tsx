@@ -71,23 +71,10 @@ export default function HomeClient({
     const [isCartMinimized, setIsCartMinimized] =
         useState(false);
 
-    const [shoppingPrompt, setShoppingPrompt] = useState(
-        SHOPPING_PROMPTS[0]
-    );
+    const [shoppingPrompt] = useState(SHOPPING_PROMPTS[0]);
 
     const finishSplash = useCallback(() => {
         setShowSplash(false);
-    }, []);
-
-    useEffect(() => {
-        const randomPrompt =
-            SHOPPING_PROMPTS[
-                Math.floor(
-                    Math.random() * SHOPPING_PROMPTS.length
-                )
-            ];
-
-        setShoppingPrompt(randomPrompt);
     }, []);
 
     /*
@@ -437,7 +424,7 @@ export default function HomeClient({
             <main className="flex min-h-screen justify-center overflow-clip px-4 sm:px-6">
                 <div aria-hidden="true" className="background-mark background-mark-cross" />
 
-                <div className="relative z-10 w-full max-w-xl py-6 sm:py-10 md:max-w-4xl lg:max-w-6xl">
+                <div className="relative z-10 w-full max-w-xl py-8 sm:py-12 md:max-w-4xl lg:max-w-6xl">
                     <Header hasCompared={hasCompared} />
 
                     <section aria-labelledby="shop-heading" className="max-w-3xl">
@@ -505,7 +492,7 @@ export default function HomeClient({
                                     type="button"
                                     onClick={handleComparePrices}
                                     disabled={isComparing}
-                                    className="mx-auto mt-6 flex min-h-11 w-fit items-center justify-center gap-2 rounded-2xl bg-[#243239] px-5 py-4 text-base font-bold text-[#fffdf8] shadow-[0_10px_24px_rgba(36,50,57,0.18)] transition hover:-translate-y-0.5 hover:bg-[#34464f] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="sticky bottom-4 z-20 mx-auto mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#243239] px-5 py-4 text-base font-bold text-[#fffdf8] shadow-[0_10px_24px_rgba(36,50,57,0.18)] transition hover:-translate-y-0.5 hover:bg-[#34464f] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 sm:w-fit"
                                 >
                                     <ShoppingCart size={19} />
                                     {isComparing ? "Comparing prices..." : hasCompared ? "Recalculate prices" : "Compare prices"}

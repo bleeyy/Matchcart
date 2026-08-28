@@ -81,7 +81,7 @@ export default function StoreComparison({
     };
 
     return (
-        <div className="comparison-reveal comparison-reveal-late mt-6 overflow-hidden rounded-[1.35rem] border border-[#ded6c9] bg-[#fffdf8] shadow-[0_10px_28px_rgba(82,66,44,0.05)]">
+        <div className="comparison-reveal comparison-reveal-late mt-6 overflow-hidden rounded-xl border border-[#ded6c9] bg-[#fffdf8]">
 
             <button
                 type="button"

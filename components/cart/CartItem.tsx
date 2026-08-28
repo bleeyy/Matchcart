@@ -20,10 +20,10 @@ export default function CartItem({
 
   return (
     <li
-      className={`cart-item-enter rounded-2xl border p-4 transition-all duration-300 ${
+      className={`cart-item-enter rounded-xl border p-4 transition-all duration-300 ${
         highlighted
           ? "scale-[1.02] border-[#ee806c] bg-[#ee806c]/10"
-          : "border-[#ded6c9] bg-[#fffdf8] shadow-[0_8px_24px_rgba(82,66,44,0.05)]"
+          : "border-[#ded6c9] bg-[#fffdf8]"
       }`}
     >
       <div className="flex items-start justify-between gap-4">

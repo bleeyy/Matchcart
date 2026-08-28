@@ -34,11 +34,11 @@ body::before {
   z-index: -2;
   inset: 0;
   pointer-events: none;
-  background-image: linear-gradient(rgba(215, 94, 85, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(215, 94, 85, 0.2) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(215, 94, 85, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(215, 94, 85, 0.1) 1px, transparent 1px);
   background-position: center top;
   background-size: 48px 48px;
   content: "";
-  mask-image: linear-gradient(to bottom, black, transparent 78%);
+  mask-image: linear-gradient(to bottom, black, transparent 48%);
 }
 
 main {
@@ -61,34 +61,6 @@ main {
   opacity: 0.55;
   background: linear-gradient(var(--coral), var(--coral)) center / 1px 100% no-repeat, linear-gradient(90deg, var(--coral), var(--coral)) center / 100% 1px no-repeat;
   animation: cross-drift 7s ease-in-out infinite;
-}
-
-main::before {
-  position: absolute;
-  z-index: 0;
-  top: 0;
-  right: -8rem;
-  width: 22rem;
-  height: 22rem;
-  border: 1px solid rgba(238, 128, 108, 0.24);
-  border-radius: 50%;
-  content: "";
-  transform: translateY(-8rem);
-  animation: ring-drift 10s ease-in-out infinite;
-}
-
-main::after {
-  position: absolute;
-  z-index: 0;
-  top: 21rem;
-  left: -1rem;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--coral);
-  box-shadow: 14px 14px 0 var(--sage), 28px 28px 0 var(--line);
-  content: "";
-  animation: dots-drift 6s ease-in-out infinite;
 }
 
 button,

@@ -167,7 +167,7 @@ export default function ProductSearch({
             {/* Results */}
             {search &&
                 filteredProducts.length > 0 && (
-                    <div className="search-results-enter mt-2 overflow-hidden rounded-2xl border border-[#ded6c9] bg-[#fffdf8] shadow-[0_16px_35px_rgba(82,66,44,0.12)]">
+                    <div className="search-results-enter mt-2 overflow-hidden rounded-xl border border-[#ded6c9] bg-[#fffdf8] shadow-[0_12px_24px_rgba(82,66,44,0.09)]">
                         {filteredProducts.map(
                             (product) => {
                                 const hasVariants =
@@ -365,7 +365,7 @@ export default function ProductSearch({
             {/* No results */}
             {search &&
                 filteredProducts.length === 0 && (
-                    <div className="mt-2 rounded-2xl border border-[#ded6c9] bg-[#fffdf8] p-4 text-sm text-[#68736f] shadow-[0_16px_35px_rgba(82,66,44,0.12)]">
+                    <div className="mt-2 rounded-xl border border-[#ded6c9] bg-[#fffdf8] p-4 text-sm text-[#68736f] shadow-[0_12px_24px_rgba(82,66,44,0.09)]">
                         No products found.
                     </div>
                 )}

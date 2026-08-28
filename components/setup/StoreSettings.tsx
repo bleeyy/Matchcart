@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, X } from "lucide-react";
 import { stores } from "@/lib/data/stores";
 
@@ -17,6 +17,20 @@ export default function StoreSettings({
 }: StoreSettingsProps) {
     const [selected, setSelected] =
         useState<number[]>(selectedStoreIds);
+    const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+        closeButtonRef.current?.focus();
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                onClose();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
 
     const toggleStore = (storeId: number) => {
         setSelected((prev) =>
@@ -60,6 +74,7 @@ export default function StoreSettings({
                     <button
                         type="button"
                         onClick={onClose}
+                        ref={closeButtonRef}
                         className="rounded-full p-2 text-[#68736f] transition hover:bg-[#f1eadf] hover:text-[#243239]"
                         aria-label="Close store settings"
                     >
