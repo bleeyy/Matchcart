@@ -23,12 +23,11 @@ export async function getCurrentPrices(): Promise<
             currency,
             source,
             updated_at,
-            regular_price,
-            promo_price,
-            size_id,
             store_products!inner (
                 product_id,
-                store_id
+                store_id,
+                variant_id,
+                size_id
             )
         `)
         .order("updated_at", {
@@ -75,18 +74,24 @@ export async function getCurrentPrices(): Promise<
             updatedAt:
                 row.updated_at,
 
+            /*
+             * regular_price and promo_price are currently
+             * stored in price_history rather than prices.
+             *
+             * Current prices therefore do not have these
+             * values available.
+             */
             regularPrice:
-                row.regular_price !== null
-                    ? Number(row.regular_price)
-                    : null,
+                null,
 
             promoPrice:
-                row.promo_price !== null
-                    ? Number(row.promo_price)
-                    : null,
+                null,
 
+            /*
+             * size_id belongs to store_products.
+             */
             sizeId:
-                row.size_id,
+                storeProduct.size_id,
         };
 
         const key = [
@@ -116,7 +121,8 @@ export async function getCurrentPrices(): Promise<
 export async function saveRetailerPrice(
     productId: number,
     storeId: number,
-    sizeId: number | null,
+    variantId: number,
+    sizeId: number,
     retailerPrice: {
         externalProductId: string;
         productName: string;
@@ -137,17 +143,22 @@ export async function saveRetailerPrice(
         createAdminClient();
 
     /*
-     * Find the existing retailer product using
-     * the database's unique:
+     * A store product represents:
      *
-     * store_id + external_id
+     * Store
+     *   + Product
+     *   + Variant
+     *   + Size
+     *
+     * Find the existing retailer product by its
+     * store + external retailer ID.
      */
     const {
         data: existingStoreProduct,
         error: lookupError,
     } = await supabase
         .from("store_products")
-        .select("id, product_id")
+        .select("id")
         .eq(
             "store_id",
             storeId
@@ -174,10 +185,6 @@ export async function saveRetailerPrice(
      * Existing retailer product.
      */
     if (existingStoreProduct) {
-        /*
-         * Keep the retailer product's information
-         * up to date.
-         */
         const {
             error: updateError,
         } = await supabase
@@ -185,6 +192,12 @@ export async function saveRetailerPrice(
             .update({
                 product_id:
                     productId,
+
+                variant_id:
+                    variantId,
+
+                size_id:
+                    sizeId,
 
                 name:
                     retailerPrice.productName,
@@ -220,6 +233,12 @@ export async function saveRetailerPrice(
 
                 store_id:
                     storeId,
+
+                variant_id:
+                    variantId,
+
+                size_id:
+                    sizeId,
 
                 external_id:
                     retailerPrice.externalProductId,
@@ -294,43 +313,21 @@ export async function saveRetailerPrice(
     }
 
     /*
-     * Find an existing price for this exact
-     * store product + size combination.
+     * Find the current price for this store product.
      *
-     * IMPORTANT:
-     *
-     * Supabase/Postgres treats NULL specially,
-     * so we cannot use .eq("size_id", null).
-     *
-     * For null sizes we use .is("size_id", null).
+     * size_id does NOT belong in prices.
+     * It is already represented by store_products.size_id.
      */
-    let existingPriceQuery =
-        supabase
-            .from("prices")
-            .select("id")
-            .eq(
-                "store_product_id",
-                storeProductId
-            );
-
-    if (sizeId === null) {
-        existingPriceQuery =
-            existingPriceQuery.is(
-                "size_id",
-                null
-            );
-    } else {
-        existingPriceQuery =
-            existingPriceQuery.eq(
-                "size_id",
-                sizeId
-            );
-    }
-
     const {
         data: existingPrice,
         error: existingPriceError,
-    } = await existingPriceQuery
+    } = await supabase
+        .from("prices")
+        .select("id")
+        .eq(
+            "store_product_id",
+            storeProductId
+        )
         .order("updated_at", {
             ascending: false,
         })
@@ -344,9 +341,7 @@ export async function saveRetailerPrice(
     }
 
     /*
-     * If a price already exists for this exact
-     * store product + size, update it instead
-     * of inserting another row.
+     * If a price already exists, update it.
      */
     if (existingPrice) {
         const {
@@ -365,15 +360,6 @@ export async function saveRetailerPrice(
 
                 updated_at:
                     retailerPrice.updatedAt,
-
-                regular_price:
-                    retailerPrice.regularPrice,
-
-                promo_price:
-                    retailerPrice.promoPrice,
-
-                size_id:
-                    sizeId,
             })
             .eq(
                 "id",
@@ -386,12 +372,48 @@ export async function saveRetailerPrice(
             );
         }
 
+        /*
+         * Keep historical pricing information separately.
+         */
+        const {
+            error: historyError,
+        } = await supabase
+            .from("price_history")
+            .insert({
+                store_product_id:
+                    storeProductId,
+
+                price:
+                    retailerPrice.price,
+
+                regular_price:
+                    retailerPrice.regularPrice,
+
+                promo_price:
+                    retailerPrice.promoPrice,
+
+                currency:
+                    retailerPrice.currency,
+
+                source:
+                    retailerPrice.source,
+
+                recorded_at:
+                    retailerPrice.updatedAt,
+            });
+
+        if (historyError) {
+            throw new Error(
+                `Failed to save price history: ${historyError.message}`
+            );
+        }
+
         return storeProductId;
     }
 
     /*
-     * No existing price was found, so create
-     * the first price for this combination.
+     * No current price exists.
+     * Create it.
      */
     const {
         error: priceError,
@@ -412,67 +434,37 @@ export async function saveRetailerPrice(
 
             updated_at:
                 retailerPrice.updatedAt,
-
-            regular_price:
-                retailerPrice.regularPrice,
-
-            promo_price:
-                retailerPrice.promoPrice,
-
-            size_id:
-                sizeId,
         });
 
     if (priceError) {
         /*
          * A second request may have inserted the
          * price between our lookup and insert.
-         *
-         * If that happens, update the existing row
-         * instead of failing the comparison.
          */
         if (
             priceError.code ===
             "23505"
         ) {
-            let concurrentPriceQuery =
-                supabase
-                    .from("prices")
-                    .select("id")
-                    .eq(
-                        "store_product_id",
-                        storeProductId
-                    );
-
-            if (sizeId === null) {
-                concurrentPriceQuery =
-                    concurrentPriceQuery.is(
-                        "size_id",
-                        null
-                    );
-            } else {
-                concurrentPriceQuery =
-                    concurrentPriceQuery.eq(
-                        "size_id",
-                        sizeId
-                    );
-            }
-
             const {
                 data: concurrentPrice,
                 error:
                     concurrentPriceLookupError,
-            } =
-                await concurrentPriceQuery
-                    .order(
-                        "updated_at",
-                        {
-                            ascending:
-                                false,
-                        }
-                    )
-                    .limit(1)
-                    .maybeSingle();
+            } = await supabase
+                .from("prices")
+                .select("id")
+                .eq(
+                    "store_product_id",
+                    storeProductId
+                )
+                .order(
+                    "updated_at",
+                    {
+                        ascending:
+                            false,
+                    }
+                )
+                .limit(1)
+                .maybeSingle();
 
             if (
                 concurrentPriceLookupError ||
@@ -503,15 +495,6 @@ export async function saveRetailerPrice(
 
                     updated_at:
                         retailerPrice.updatedAt,
-
-                    regular_price:
-                        retailerPrice.regularPrice,
-
-                    promo_price:
-                        retailerPrice.promoPrice,
-
-                    size_id:
-                        sizeId,
                 })
                 .eq(
                     "id",
@@ -523,12 +506,46 @@ export async function saveRetailerPrice(
                     `Failed to update concurrent retailer price: ${concurrentUpdateError.message}`
                 );
             }
-
-            return storeProductId;
+        } else {
+            throw new Error(
+                `Failed to save retailer price: ${priceError.message}`
+            );
         }
+    }
 
+    /*
+     * Save regular/promo pricing in price history.
+     */
+    const {
+        error: historyError,
+    } = await supabase
+        .from("price_history")
+        .insert({
+            store_product_id:
+                storeProductId,
+
+            price:
+                retailerPrice.price,
+
+            regular_price:
+                retailerPrice.regularPrice,
+
+            promo_price:
+                retailerPrice.promoPrice,
+
+            currency:
+                retailerPrice.currency,
+
+            source:
+                retailerPrice.source,
+
+            recorded_at:
+                retailerPrice.updatedAt,
+        });
+
+    if (historyError) {
         throw new Error(
-            `Failed to save retailer price: ${priceError.message}`
+            `Failed to save price history: ${historyError.message}`
         );
     }
 

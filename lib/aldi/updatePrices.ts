@@ -24,8 +24,8 @@ type ProductCatalog = {
 
 type UpdateJob = {
     product: ProductCatalog;
-    variant: ProductVariant | null;
-    size: ProductSize | null;
+    variant: ProductVariant;
+    size: ProductSize;
 };
 
 type AldiUpdateResult = {
@@ -33,7 +33,7 @@ type AldiUpdateResult = {
     name: string;
     aldiProductId: string;
     price: number;
-    sizeId: number | null;
+    sizeId: number;
 };
 
 type AldiFailure = {
@@ -41,17 +41,9 @@ type AldiFailure = {
     reason: string;
 };
 
-const ALDI_STORE_ID = 2;
-
-/*
- * Keep Aldi requests small because the API has
- * finite credits.
- */
+const ALDI_STORE_ID = 1;
 const SEARCH_LIMIT = 5;
 
-/*
- * Normalize text before comparing products.
- */
 function normalize(value: string) {
     return value
         .toLowerCase()
@@ -92,14 +84,12 @@ const CONFLICT_GROUPS: string[][] = [
         "soy",
         "coconut",
     ],
-
     [
         "chicken",
         "turkey",
         "beef",
         "pork",
     ],
-
     [
         "white",
         "brown",
@@ -108,14 +98,12 @@ const CONFLICT_GROUPS: string[][] = [
         "yellow",
         "green",
     ],
-
     [
         "whole",
         "skim",
         "2",
         "1",
     ],
-
     [
         "rice",
         "lentils",
@@ -161,15 +149,13 @@ function hasConflict(
     resultWords: string[]
 ) {
     for (const group of CONFLICT_GROUPS) {
-        const searchGroupWords =
-            searchWords.filter((word) =>
-                group.includes(word)
-            );
+        const searchGroupWords = searchWords.filter(
+            (word) => group.includes(word)
+        );
 
-        const resultGroupWords =
-            resultWords.filter((word) =>
-                group.includes(word)
-            );
+        const resultGroupWords = resultWords.filter(
+            (word) => group.includes(word)
+        );
 
         if (
             searchGroupWords.length === 0 ||
@@ -194,20 +180,14 @@ function scoreAldiProduct(
     searchTerm: string,
     product: AldiProduct
 ) {
-    const normalizedSearch =
-        normalize(searchTerm);
+    const normalizedSearch = normalize(searchTerm);
+    const normalizedName = normalize(product.name);
 
-    const normalizedName =
-        normalize(product.name);
-
-    const searchWords = getWords(
-        normalizedSearch
-    ).filter(
+    const searchWords = getWords(normalizedSearch).filter(
         (word) => !COMMON_WORDS.has(word)
     );
 
-    const resultWords =
-        getWords(normalizedName);
+    const resultWords = getWords(normalizedName);
 
     if (searchWords.length === 0) {
         return {
@@ -216,37 +196,25 @@ function scoreAldiProduct(
         };
     }
 
-    if (
-        normalizedName ===
-        normalizedSearch
-    ) {
+    if (normalizedName === normalizedSearch) {
         return {
             score: 10000,
             valid: true,
         };
     }
 
-    if (
-        hasConflict(
-            searchWords,
-            resultWords
-        )
-    ) {
+    if (hasConflict(searchWords, resultWords)) {
         return {
             score: -10000,
             valid: false,
         };
     }
 
-    const matchedWords =
-        searchWords.filter((word) =>
-            resultWords.includes(word)
-        );
+    const matchedWords = searchWords.filter(
+        (word) => resultWords.includes(word)
+    );
 
-    if (
-        matchedWords.length !==
-        searchWords.length
-    ) {
+    if (matchedWords.length !== searchWords.length) {
         return {
             score: -5000,
             valid: false,
@@ -255,66 +223,44 @@ function scoreAldiProduct(
 
     let score = 0;
 
-    score +=
-        matchedWords.length * 1000;
+    score += matchedWords.length * 1000;
 
-    if (
-        normalizedName.includes(
-            normalizedSearch
-        )
-    ) {
+    if (normalizedName.includes(normalizedSearch)) {
         score += 1500;
     }
 
-    if (
-        normalizedName.startsWith(
-            normalizedSearch
-        )
-    ) {
+    if (normalizedName.startsWith(normalizedSearch)) {
         score += 1200;
     }
 
-    const extraWords =
-        resultWords.filter(
-            (word) =>
-                !searchWords.includes(word) &&
-                STRONG_EXTRA_WORDS.has(word)
-        );
-
-    score -=
-        extraWords.length * 700;
-
-    const unrelatedWords =
-        resultWords.filter(
-            (word) =>
-                !searchWords.includes(word)
-        ).length;
-
-    score -= Math.min(
-        unrelatedWords * 50,
-        500
+    const extraWords = resultWords.filter(
+        (word) =>
+            !searchWords.includes(word) &&
+            STRONG_EXTRA_WORDS.has(word)
     );
 
-    if (
-        resultWords.length <=
-        searchWords.length + 3
-    ) {
+    score -= extraWords.length * 700;
+
+    const unrelatedWords = resultWords.filter(
+        (word) => !searchWords.includes(word)
+    ).length;
+
+    score -= Math.min(unrelatedWords * 50, 500);
+
+    if (resultWords.length <= searchWords.length + 3) {
         score += 500;
     }
 
-    const firstWords =
-        resultWords.slice(
-            0,
-            searchWords.length + 3
-        );
+    const firstWords = resultWords.slice(
+        0,
+        searchWords.length + 3
+    );
 
-    const earlyMatches =
-        searchWords.filter((word) =>
-            firstWords.includes(word)
-        ).length;
+    const earlyMatches = searchWords.filter(
+        (word) => firstWords.includes(word)
+    ).length;
 
-    score +=
-        earlyMatches * 150;
+    score += earlyMatches * 150;
 
     if (product.available) {
         score += 300;
@@ -334,11 +280,10 @@ function chooseBestAldiMatch(
 ) {
     const ranked = products
         .map((product) => {
-            const match =
-                scoreAldiProduct(
-                    searchTerm,
-                    product
-                );
+            const match = scoreAldiProduct(
+                searchTerm,
+                product
+            );
 
             return {
                 product,
@@ -346,46 +291,27 @@ function chooseBestAldiMatch(
                 valid: match.valid,
             };
         })
-        .filter(
-            (item) => item.valid
-        )
-        .sort(
-            (a, b) =>
-                b.score - a.score
-        );
+        .filter((item) => item.valid)
+        .sort((a, b) => b.score - a.score);
 
     console.log(
         "Aldi match ranking:",
-        ranked.slice(0, 5).map(
-            (item) => ({
-                productId:
-                    item.product
-                        .product_id,
-                name:
-                    item.product.name,
-                price:
-                    item.product.price,
-                size:
-                    item.product.size,
-                score:
-                    item.score,
-            })
-        )
+        ranked.slice(0, 5).map((item) => ({
+            productId: item.product.product_id,
+            name: item.product.name,
+            price: item.product.price,
+            size: item.product.size,
+            score: item.score,
+        }))
     );
 
     return ranked[0]?.product ?? null;
 }
 
-function parsePrice(
-    product: AldiProduct
-) {
-    const price =
-        Number(product.price);
+function parsePrice(product: AldiProduct) {
+    const price = Number(product.price);
 
-    if (
-        !Number.isFinite(price) ||
-        price < 0
-    ) {
+    if (!Number.isFinite(price) || price < 0) {
         return null;
     }
 
@@ -406,46 +332,16 @@ async function updateSingleAldiProduct(
         size,
     } = job;
 
-    const displayParts = [
+    const displayName = [
         product.name,
-    ];
+        variant.name,
+        `(${size.label})`,
+    ].join(" - ");
 
-    if (variant) {
-        displayParts.push(
-            variant.name
-        );
-    }
-
-    if (size) {
-        displayParts.push(
-            `(${size.label})`
-        );
-    }
-
-    const displayName =
-        displayParts.join(" - ");
-
-    const searchParts: string[] =
-        [];
-
-    if (variant) {
-        searchParts.push(
-            variant.name
-        );
-    } else {
-        searchParts.push(
-            product.name
-        );
-    }
-
-    if (size) {
-        searchParts.push(
-            size.label
-        );
-    }
-
-    const searchTerm =
-        searchParts.join(" ");
+    const searchTerm = [
+        variant.name,
+        size.label,
+    ].join(" ");
 
     console.log(
         `\n--- Processing Aldi: ${displayName} ---`
@@ -456,21 +352,14 @@ async function updateSingleAldiProduct(
         searchTerm
     );
 
-    /*
-     * Search Aldi.
-     *
-     * If the API itself fails, mark the entire
-     * retailer as unavailable.
-     */
     let searchResponse;
 
     try {
-        searchResponse =
-            await searchAldiProducts(
-                searchTerm,
-                zipCode,
-                SEARCH_LIMIT
-            );
+        searchResponse = await searchAldiProducts(
+            searchTerm,
+            zipCode,
+            SEARCH_LIMIT
+        );
     } catch (error) {
         const message =
             error instanceof Error
@@ -484,59 +373,46 @@ async function updateSingleAldiProduct(
 
         return {
             apiUnavailable: true,
-
             failure: {
-                product:
-                    displayName,
-
-                reason:
-                    `Aldi API unavailable: ${message}`,
+                product: displayName,
+                reason: `Aldi API unavailable: ${message}`,
             },
         };
     }
 
-    const products =
-        searchResponse.products ?? [];
+    const products = searchResponse.products ?? [];
 
     if (products.length === 0) {
         return {
             failure: {
-                product:
-                    displayName,
-
+                product: displayName,
                 reason:
                     "Aldi API worked, but no products were found",
             },
         };
     }
 
-    const match =
-        chooseBestAldiMatch(
-            searchTerm,
-            products
-        );
+    const match = chooseBestAldiMatch(
+        searchTerm,
+        products
+    );
 
     if (!match) {
         return {
             failure: {
-                product:
-                    displayName,
-
+                product: displayName,
                 reason:
                     "Aldi API worked, but no sufficiently close product match was found",
             },
         };
     }
 
-    const price =
-        parsePrice(match);
+    const price = parsePrice(match);
 
     if (price === null) {
         return {
             failure: {
-                product:
-                    displayName,
-
+                product: displayName,
                 reason:
                     "Aldi product was found, but no usable price was returned",
             },
@@ -546,9 +422,7 @@ async function updateSingleAldiProduct(
     if (!match.available) {
         return {
             failure: {
-                product:
-                    displayName,
-
+                product: displayName,
                 reason:
                     "Aldi product was found but is currently unavailable",
             },
@@ -558,76 +432,43 @@ async function updateSingleAldiProduct(
     console.log(
         "Selected Aldi product:",
         {
-            productId:
-                match.product_id,
-
-            name:
-                match.name,
-
-            brand:
-                match.brand,
-
-            size:
-                match.size,
-
+            productId: match.product_id,
+            name: match.name,
+            brand: match.brand,
+            size: match.size,
             price,
         }
     );
 
     await saveRetailerPrice(
         product.id,
+        variant.id,
+        size.id,
         ALDI_STORE_ID,
-        size?.id ?? null,
         {
-            externalProductId:
-                match.product_id,
-
-            productName:
-                match.name,
-
-            brand:
-                match.brand,
-
+            externalProductId: match.product_id,
+            productName: match.name,
+            brand: match.brand,
             price,
-
-            regularPrice:
-                price,
-
-            promoPrice:
-                null,
-
-            currency:
-                "USD",
-
-            source:
-                "aldi-api",
-
-            updatedAt:
-                new Date().toISOString(),
+            regularPrice: price,
+            promoPrice: null,
+            currency: "USD",
+            source: "aldi-api",
+            updatedAt: new Date().toISOString(),
         }
     );
 
     console.log(
-        `ALDI SUCCESS: ${displayName} -> $${price.toFixed(
-            2
-        )}`
+        `ALDI SUCCESS: ${displayName} -> $${price.toFixed(2)}`
     );
 
     return {
         result: {
-            productId:
-                product.id,
-
-            name:
-                displayName,
-
-            aldiProductId:
-                match.product_id,
-
+            productId: product.id,
+            name: displayName,
+            aldiProductId: match.product_id,
             price,
-
-            sizeId:
-                size?.id ?? null,
+            sizeId: size.id,
         },
     };
 }
@@ -635,8 +476,7 @@ async function updateSingleAldiProduct(
 export async function updateAldiPrices(
     products: ProductCatalog[]
 ) {
-    const zipCode =
-        process.env.ALDI_ZIP_CODE;
+    const zipCode = process.env.ALDI_ZIP_CODE;
 
     if (!zipCode) {
         throw new Error(
@@ -644,44 +484,19 @@ export async function updateAldiPrices(
         );
     }
 
-    const results:
-        AldiUpdateResult[] = [];
-
-    const failures:
-        AldiFailure[] = [];
-
-    const jobs:
-        UpdateJob[] = [];
+    const results: AldiUpdateResult[] = [];
+    const failures: AldiFailure[] = [];
+    const jobs: UpdateJob[] = [];
 
     for (const product of products) {
-        if (
-            product.variants?.length > 0
-        ) {
-            for (const variant of product.variants) {
-                if (
-                    variant.sizes?.length > 0
-                ) {
-                    for (const size of variant.sizes) {
-                        jobs.push({
-                            product,
-                            variant,
-                            size,
-                        });
-                    }
-                } else {
-                    jobs.push({
-                        product,
-                        variant,
-                        size: null,
-                    });
-                }
+        for (const variant of product.variants ?? []) {
+            for (const size of variant.sizes ?? []) {
+                jobs.push({
+                    product,
+                    variant,
+                    size,
+                });
             }
-        } else {
-            jobs.push({
-                product,
-                variant: null,
-                size: null,
-            });
         }
     }
 
@@ -700,19 +515,8 @@ export async function updateAldiPrices(
         zipCode
     );
 
-    /*
-     * IMPORTANT:
-     *
-     * Process requests one at a time.
-     *
-     * If the API becomes unavailable, immediately
-     * stop making requests so we don't waste
-     * additional API credits.
-     */
     let apiUnavailable = false;
-    let apiError:
-        | string
-        | null = null;
+    let apiError: string | null = null;
 
     for (
         let i = 0;
@@ -722,9 +526,7 @@ export async function updateAldiPrices(
         const job = jobs[i];
 
         console.log(
-            `\nProcessing Aldi job ${
-                i + 1
-            }-${jobs.length}`
+            `\nProcessing Aldi job ${i + 1}-${jobs.length}`
         );
 
         const result =
@@ -734,22 +536,13 @@ export async function updateAldiPrices(
             );
 
         if (result.result) {
-            results.push(
-                result.result
-            );
+            results.push(result.result);
         }
 
         if (result.failure) {
-            failures.push(
-                result.failure
-            );
+            failures.push(result.failure);
         }
 
-        /*
-         * The API itself failed.
-         *
-         * Do NOT continue making requests.
-         */
         if (result.apiUnavailable) {
             apiUnavailable = true;
 
@@ -769,11 +562,6 @@ export async function updateAldiPrices(
         }
     }
 
-    /*
-     * If the API became unavailable halfway through,
-     * mark all remaining jobs as unavailable instead
-     * of pretending they were missing products.
-     */
     if (
         apiUnavailable &&
         jobs.length > results.length + failures.length
@@ -787,31 +575,14 @@ export async function updateAldiPrices(
             i < jobs.length;
             i++
         ) {
-            const job =
-                jobs[i];
-
-            const displayParts = [
-                job.product.name,
-            ];
-
-            if (job.variant) {
-                displayParts.push(
-                    job.variant.name
-                );
-            }
-
-            if (job.size) {
-                displayParts.push(
-                    `(${job.size.label})`
-                );
-            }
+            const job = jobs[i];
 
             failures.push({
-                product:
-                    displayParts.join(
-                        " - "
-                    ),
-
+                product: [
+                    job.product.name,
+                    job.variant.name,
+                    `(${job.size.label})`,
+                ].join(" - "),
                 reason:
                     "Aldi API unavailable — request skipped to preserve API credits",
             });
