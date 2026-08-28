@@ -29,6 +29,13 @@ export async function compareCart(
         };
     }
 
+    if (selectedStoreIds.length === 0) {
+        return {
+            totals: [],
+            prices: [],
+        };
+    }
+
     const products = await getProducts();
 
     const productById = new Map(
@@ -38,10 +45,6 @@ export async function compareCart(
         ])
     );
 
-    /*
-     * Search every cart item against every
-     * selected retailer.
-     */
     const itemResults = await Promise.all(
         cart.map(async (item) => {
             const product =
@@ -55,37 +58,67 @@ export async function compareCart(
                 return [];
             }
 
-            /*
-             * Build the retailer search query.
-             *
-             * Example:
-             * Milk + Whole Milk + 1 gallon
-             */
+            const variant =
+                product.variants.find(
+                    (variant) =>
+                        variant.name ===
+                        item.variantName
+                );
+
+            if (!variant) {
+                console.warn(
+                    `No variant found for ${product.name}: ${item.variantName}`
+                );
+
+                return [];
+            }
+
+            const size =
+                variant.sizes.find(
+                    (size) =>
+                        size.label ===
+                        item.sizeLabel
+                );
+
+            if (!size) {
+                console.warn(
+                    `No size found for ${product.name} ${item.variantName}: ${item.sizeLabel}`
+                );
+
+                return [];
+            }
+
             const searchTerms = [
                 product.name,
-                item.variantName,
-                item.sizeLabel,
+                variant.name,
+                size.label,
             ].filter(Boolean);
 
             const searchQuery =
                 searchTerms.join(" ");
 
-            const results =
-                await searchAllRetailers(
-                    searchQuery,
-                    selectedStoreIds
+            let results;
+
+            try {
+                results =
+                    await searchAllRetailers(
+                        searchQuery,
+                        selectedStoreIds
+                    );
+            } catch (error) {
+                console.error(
+                    `Failed to search retailers for "${searchQuery}":`,
+                    error
                 );
 
-            /*
-             * Convert successful retailer results
-             * into MatchCartPrice objects.
-             */
+                return [];
+            }
+
             const livePrices: MatchCartPrice[] =
                 results
                     .filter(
-                        (
-                            result
-                        ) => result.price !== null
+                        (result) =>
+                            result.price !== null
                     )
                     .map(
                         (result) => ({
@@ -108,33 +141,25 @@ export async function compareCart(
                                 result.price!.updatedAt,
 
                             regularPrice:
-                                result.price!.regularPrice,
+                                result.price!
+                                    .regularPrice,
 
                             promoPrice:
-                                result.price!.promoPrice,
+                                result.price!
+                                    .promoPrice,
 
-                            /*
-                             * The comparison uses the
-                             * cart item's size.
-                             */
                             sizeId:
-                                item.sizeId ??
-                                null,
+                                size.id,
                         })
                     );
 
-            /*
-             * Save each successful live retailer
-             * price to Supabase.
-             *
-             * We use null for the database size_id
-             * because the cart sizeId is not guaranteed
-             * to exist in the sizes table.
-             */
             await Promise.all(
                 results.map(
                     async (result) => {
-                        if (!result.price) {
+                        if (
+                            result.price ===
+                            null
+                        ) {
                             return;
                         }
 
@@ -142,8 +167,42 @@ export async function compareCart(
                             await saveRetailerPrice(
                                 item.productId,
                                 result.storeId,
-                                null,
-                                result.price
+                                variant.id,
+                                size.id,
+                                {
+                                    externalProductId:
+                                        `${result.storeId}-${item.productId}-${variant.id}-${size.id}`,
+
+                                    productName:
+                                        product.name,
+
+                                    brand:
+                                        null,
+
+                                    price:
+                                        result.price
+                                            .price,
+
+                                    regularPrice:
+                                        result.price
+                                            .regularPrice,
+
+                                    promoPrice:
+                                        result.price
+                                            .promoPrice,
+
+                                    currency:
+                                        result.price
+                                            .currency,
+
+                                    source:
+                                        result.price
+                                            .source,
+
+                                    updatedAt:
+                                        result.price
+                                            .updatedAt,
+                                }
                             );
                         } catch (error) {
                             console.error(
@@ -159,22 +218,9 @@ export async function compareCart(
         })
     );
 
-    /*
-     * Flatten all cart-item results into one
-     * array for calculateTotals().
-     */
     const comparisonPrices =
         itemResults.flat();
 
-    /*
-     * IMPORTANT:
-     *
-     * Only prices retrieved during this
-     * comparison are used.
-     *
-     * We do not fall back to stale prices
-     * from Supabase.
-     */
     const totals =
         calculateTotals(
             cart,

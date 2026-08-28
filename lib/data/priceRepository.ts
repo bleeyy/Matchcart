@@ -74,22 +74,12 @@ export async function getCurrentPrices(): Promise<
             updatedAt:
                 row.updated_at,
 
-            /*
-             * regular_price and promo_price are currently
-             * stored in price_history rather than prices.
-             *
-             * Current prices therefore do not have these
-             * values available.
-             */
             regularPrice:
                 null,
 
             promoPrice:
                 null,
 
-            /*
-             * size_id belongs to store_products.
-             */
             sizeId:
                 storeProduct.size_id,
         };
@@ -97,14 +87,10 @@ export async function getCurrentPrices(): Promise<
         const key = [
             price.storeId,
             price.productId,
+            storeProduct.variant_id ?? "none",
             price.sizeId ?? "none",
         ].join(":");
 
-        /*
-         * Because prices are ordered newest first,
-         * keep only the newest price for each
-         * store/product/size combination.
-         */
         if (!latestPrices.has(key)) {
             latestPrices.set(
                 key,
@@ -121,8 +107,8 @@ export async function getCurrentPrices(): Promise<
 export async function saveRetailerPrice(
     productId: number,
     storeId: number,
-    variantId: number,
-    sizeId: number,
+    variantId: number | null,
+    sizeId: number | null,
     retailerPrice: {
         externalProductId: string;
         productName: string;
@@ -135,24 +121,9 @@ export async function saveRetailerPrice(
         updatedAt: string;
     }
 ) {
-    /*
-     * Retailer price writes happen on the server,
-     * so use the service-role client.
-     */
     const supabase =
         createAdminClient();
 
-    /*
-     * A store product represents:
-     *
-     * Store
-     *   + Product
-     *   + Variant
-     *   + Size
-     *
-     * Find the existing retailer product by its
-     * store + external retailer ID.
-     */
     const {
         data: existingStoreProduct,
         error: lookupError,
@@ -181,9 +152,6 @@ export async function saveRetailerPrice(
         existingStoreProduct?.id ??
         null;
 
-    /*
-     * Existing retailer product.
-     */
     if (existingStoreProduct) {
         const {
             error: updateError,
@@ -217,10 +185,6 @@ export async function saveRetailerPrice(
         }
     }
 
-    /*
-     * No existing retailer product.
-     * Create it.
-     */
     if (!storeProductId) {
         const {
             data: newStoreProduct,
@@ -253,10 +217,6 @@ export async function saveRetailerPrice(
             .single();
 
         if (insertError) {
-            /*
-             * Another request may have inserted the
-             * same retailer product at the same time.
-             */
             if (
                 insertError.code ===
                 "23505"
@@ -303,21 +263,12 @@ export async function saveRetailerPrice(
         }
     }
 
-    /*
-     * At this point a store product ID must exist.
-     */
     if (!storeProductId) {
         throw new Error(
             "Store product ID was not available when saving retailer price."
         );
     }
 
-    /*
-     * Find the current price for this store product.
-     *
-     * size_id does NOT belong in prices.
-     * It is already represented by store_products.size_id.
-     */
     const {
         data: existingPrice,
         error: existingPriceError,
@@ -340,9 +291,6 @@ export async function saveRetailerPrice(
         );
     }
 
-    /*
-     * If a price already exists, update it.
-     */
     if (existingPrice) {
         const {
             error: updatePriceError,
@@ -371,14 +319,11 @@ export async function saveRetailerPrice(
                 `Failed to update retailer price: ${updatePriceError.message}`
             );
         }
-
-        /*
-         * Keep historical pricing information separately.
-         */
+    } else {
         const {
-            error: historyError,
+            error: priceError,
         } = await supabase
-            .from("price_history")
+            .from("prices")
             .insert({
                 store_product_id:
                     storeProductId,
@@ -386,136 +331,90 @@ export async function saveRetailerPrice(
                 price:
                     retailerPrice.price,
 
-                regular_price:
-                    retailerPrice.regularPrice,
-
-                promo_price:
-                    retailerPrice.promoPrice,
-
                 currency:
                     retailerPrice.currency,
 
                 source:
                     retailerPrice.source,
 
-                recorded_at:
+                updated_at:
                     retailerPrice.updatedAt,
             });
 
-        if (historyError) {
-            throw new Error(
-                `Failed to save price history: ${historyError.message}`
-            );
-        }
-
-        return storeProductId;
-    }
-
-    /*
-     * No current price exists.
-     * Create it.
-     */
-    const {
-        error: priceError,
-    } = await supabase
-        .from("prices")
-        .insert({
-            store_product_id:
-                storeProductId,
-
-            price:
-                retailerPrice.price,
-
-            currency:
-                retailerPrice.currency,
-
-            source:
-                retailerPrice.source,
-
-            updated_at:
-                retailerPrice.updatedAt,
-        });
-
-    if (priceError) {
-        /*
-         * A second request may have inserted the
-         * price between our lookup and insert.
-         */
-        if (
-            priceError.code ===
-            "23505"
-        ) {
-            const {
-                data: concurrentPrice,
-                error:
-                    concurrentPriceLookupError,
-            } = await supabase
-                .from("prices")
-                .select("id")
-                .eq(
-                    "store_product_id",
-                    storeProductId
-                )
-                .order(
-                    "updated_at",
-                    {
-                        ascending:
-                            false,
-                    }
-                )
-                .limit(1)
-                .maybeSingle();
-
+        if (priceError) {
             if (
-                concurrentPriceLookupError ||
-                !concurrentPrice
+                priceError.code ===
+                "23505"
             ) {
+                const {
+                    data: concurrentPrice,
+                    error:
+                        concurrentPriceLookupError,
+                } = await supabase
+                    .from("prices")
+                    .select("id")
+                    .eq(
+                        "store_product_id",
+                        storeProductId
+                    )
+                    .order(
+                        "updated_at",
+                        {
+                            ascending:
+                                false,
+                        }
+                    )
+                    .limit(1)
+                    .maybeSingle();
+
+                if (
+                    concurrentPriceLookupError ||
+                    !concurrentPrice
+                ) {
+                    throw new Error(
+                        `Failed to recover existing retailer price: ${
+                            concurrentPriceLookupError?.message ??
+                            priceError.message
+                        }`
+                    );
+                }
+
+                const {
+                    error:
+                        concurrentUpdateError,
+                } = await supabase
+                    .from("prices")
+                    .update({
+                        price:
+                            retailerPrice.price,
+
+                        currency:
+                            retailerPrice.currency,
+
+                        source:
+                            retailerPrice.source,
+
+                        updated_at:
+                            retailerPrice.updatedAt,
+                    })
+                    .eq(
+                        "id",
+                        concurrentPrice.id
+                    );
+
+                if (concurrentUpdateError) {
+                    throw new Error(
+                        `Failed to update concurrent retailer price: ${concurrentUpdateError.message}`
+                    );
+                }
+            } else {
                 throw new Error(
-                    `Failed to recover existing retailer price: ${
-                        concurrentPriceLookupError?.message ??
-                        priceError.message
-                    }`
+                    `Failed to save retailer price: ${priceError.message}`
                 );
             }
-
-            const {
-                error:
-                    concurrentUpdateError,
-            } = await supabase
-                .from("prices")
-                .update({
-                    price:
-                        retailerPrice.price,
-
-                    currency:
-                        retailerPrice.currency,
-
-                    source:
-                        retailerPrice.source,
-
-                    updated_at:
-                        retailerPrice.updatedAt,
-                })
-                .eq(
-                    "id",
-                    concurrentPrice.id
-                );
-
-            if (concurrentUpdateError) {
-                throw new Error(
-                    `Failed to update concurrent retailer price: ${concurrentUpdateError.message}`
-                );
-            }
-        } else {
-            throw new Error(
-                `Failed to save retailer price: ${priceError.message}`
-            );
         }
     }
 
-    /*
-     * Save regular/promo pricing in price history.
-     */
     const {
         error: historyError,
     } = await supabase

@@ -44,16 +44,8 @@ type HebFailure = {
     reason: string;
 };
 
-/*
- * H-E-B store ID for MatchCart.
- */
 const HEB_STORE_ID = "543";
 
-/*
- * H-E-B searches return plenty of products.
- * We only need the first page because we rank
- * the returned products ourselves.
- */
 const SEARCH_PAGE = 1;
 
 function normalize(
@@ -303,10 +295,6 @@ function scoreHebProduct(
                 )
         );
 
-    /*
-     * Require every meaningful search
-     * word to appear in the H-E-B name.
-     */
     if (
         matchedWords.length !==
         searchWords.length
@@ -400,11 +388,6 @@ function scoreHebProduct(
         score -= 500;
     }
 
-    /*
-     * H-E-B own-brand products are often
-     * exactly what we want for generic
-     * grocery searches.
-     */
     if (
         product.is_own_brand
     ) {
@@ -716,6 +699,7 @@ async function updateSingleHebProduct(
             Number(
                 HEB_STORE_ID
             ),
+            variant?.id ?? null,
             size?.id ?? null,
             {
                 externalProductId:
@@ -799,10 +783,6 @@ export async function updateHebPrices(
         UpdateJob[] =
         [];
 
-    /*
-     * Flatten the MatchCart catalog
-     * into individual price jobs.
-     */
     for (
         const product of products
     ) {
@@ -863,10 +843,6 @@ export async function updateHebPrices(
         HEB_STORE_ID
     );
 
-    /*
-     * Run sequentially to avoid
-     * burning Parse credits too quickly.
-     */
     for (
         let i = 0;
         i < jobs.length;

@@ -203,9 +203,6 @@ function scoreTargetProduct(
         return -10000;
     }
 
-    /*
-     * Exact title match.
-     */
     if (
         normalizedName ===
         normalizedSearch
@@ -213,9 +210,6 @@ function scoreTargetProduct(
         return 10000;
     }
 
-    /*
-     * Reject obvious product-type conflicts.
-     */
     if (
         hasConflict(
             searchWords,
@@ -225,20 +219,11 @@ function scoreTargetProduct(
         return -10000;
     }
 
-    /*
-     * Every meaningful search word should
-     * appear somewhere in the Target title.
-     */
     const matchedWords =
         searchWords.filter((word) =>
             resultWords.includes(word)
         );
 
-    /*
-     * Target search can return related
-     * products, but we don't want a product
-     * that is missing a requested descriptor.
-     */
     if (
         matchedWords.length !==
         searchWords.length
@@ -248,15 +233,9 @@ function scoreTargetProduct(
 
     let score = 0;
 
-    /*
-     * Reward matching words.
-     */
     score +=
         matchedWords.length * 1000;
 
-    /*
-     * Exact phrase match.
-     */
     if (
         normalizedName.includes(
             normalizedSearch
@@ -265,9 +244,6 @@ function scoreTargetProduct(
         score += 1500;
     }
 
-    /*
-     * Title begins with search term.
-     */
     if (
         normalizedName.startsWith(
             normalizedSearch
@@ -276,9 +252,6 @@ function scoreTargetProduct(
         score += 1200;
     }
 
-    /*
-     * Penalize strong unrelated descriptors.
-     */
     const extraWords =
         resultWords.filter(
             (word) =>
@@ -289,9 +262,6 @@ function scoreTargetProduct(
     score -=
         extraWords.length * 700;
 
-    /*
-     * Penalize unnecessarily long titles.
-     */
     const unrelatedWords =
         resultWords.filter(
             (word) =>
@@ -303,9 +273,6 @@ function scoreTargetProduct(
         500
     );
 
-    /*
-     * Prefer relatively direct product names.
-     */
     if (
         resultWords.length <=
         searchWords.length + 3
@@ -313,9 +280,6 @@ function scoreTargetProduct(
         score += 500;
     }
 
-    /*
-     * Prefer requested words appearing early.
-     */
     const firstWords =
         resultWords.slice(
             0,
@@ -389,15 +353,6 @@ function buildSearchTerm(
     const parts: string[] = [];
 
     if (variant) {
-        /*
-         * Include the base product name too.
-         *
-         * Example:
-         * Milk + Whole Milk
-         *
-         * becomes:
-         * Milk Whole Milk
-         */
         parts.push(product.name);
         parts.push(variant.name);
     } else {
@@ -544,17 +499,10 @@ async function updateSingleTargetProduct(
             }
         );
 
-        /*
-         * The new Parse.bot Target API gives us
-         * current_retail as the effective price.
-         *
-         * We currently don't have regular_price
-         * exposed through TargetProduct, so use
-         * the current price as regular price.
-         */
         await saveRetailerPrice(
             product.id,
             TARGET_STORE_ID,
+            variant?.id ?? null,
             size?.id ?? null,
             {
                 externalProductId:
@@ -619,7 +567,7 @@ async function updateSingleTargetProduct(
                 reason:
                     error instanceof Error
                         ? error.message
-                        : "Unknown error",
+                        : "Unknown API error",
             },
         };
     }
@@ -646,9 +594,6 @@ export async function updateTargetPrices(
     const jobs:
         UpdateJob[] = [];
 
-    /*
-     * Flatten the catalog into price jobs.
-     */
     for (const product of products) {
         if (
             product.variants?.length > 0
@@ -696,12 +641,6 @@ export async function updateTargetPrices(
         zipCode
     );
 
-    /*
-     * Process one request at a time.
-     *
-     * Target search costs 2 Parse credits
-     * per successful call.
-     */
     for (
         let i = 0;
         i < jobs.length;
