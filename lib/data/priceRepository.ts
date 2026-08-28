@@ -1,5 +1,4 @@
 import {
-  createClient,
   createAdminClient,
 } from "@/lib/supabase/server";
 
@@ -15,6 +14,17 @@ export type MatchCartPrice = Price & {
 export async function getCurrentPrices(): Promise<
   MatchCartPrice[]
 > {
+  if (
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.SUPABASE_SERVICE_ROLE_KEY
+  ) {
+    console.warn(
+      "Supabase admin credentials are unavailable; rendering without current prices."
+    );
+
+    return [];
+  }
+
   const supabase = createAdminClient();
 
   /*
