@@ -9,18 +9,6 @@ const sizes = (...labels: string[]) =>
         label,
     }));
 
-const product = (
-    id: number,
-    name: string,
-    category: string,
-    sizeLabels: string[] = ["1 count"]
-): Product => ({
-    id,
-    name,
-    category,
-    sizes: sizes(...sizeLabels),
-});
-
 const productWithVariants = (
     id: number,
     name: string,
@@ -1400,9 +1388,10 @@ export const products: Product[] = [
         ["1 lb", "2 lb"]
     ),
 
+    // Renamed to avoid duplicate "Mushrooms" product
     productWithVariants(
         107,
-        "Mushrooms",
+        "Fresh Mushrooms",
         "Produce",
         [
             "White",
@@ -1413,9 +1402,10 @@ export const products: Product[] = [
         ["8 oz", "16 oz"]
     ),
 
+    // Renamed to avoid duplicate "Corn" product
     productWithVariants(
         108,
-        "Corn",
+        "Fresh Corn",
         "Produce",
         [
             "Fresh",
@@ -1425,9 +1415,10 @@ export const products: Product[] = [
         ["4 count", "6 count"]
     ),
 
+    // Renamed to avoid duplicate "Green Beans" product
     productWithVariants(
         109,
-        "Green Beans",
+        "Fresh Green Beans",
         "Produce",
         [
             "Regular",
@@ -1777,6 +1768,10 @@ export const products: Product[] = [
         ],
         ["8 oz", "16 oz"]
     ),
+
+    // =========================
+    // PANTRY / NUT BUTTERS
+    // =========================
 
     productWithVariants(
         135,
@@ -2283,19 +2278,8 @@ export const products: Product[] = [
     // BREAKFAST
     // =========================
 
-    productWithVariants(
-        174,
-        "Breakfast Cereal",
-        "Breakfast",
-        [
-            "Corn Flakes",
-            "Cheerios",
-            "Frosted Flakes",
-            "Raisin Bran",
-            "Honey Oats",
-        ],
-        ["12 oz", "18 oz", "24 oz"]
-    ),
+    // Removed duplicate "Breakfast Cereal" entry.
+    // Product 54 already represents cereal.
 
     productWithVariants(
         175,
@@ -3001,7 +2985,7 @@ export const products: Product[] = [
     ),
 
     productWithVariants(
-        229,
+        228,
         "Hummus",
         "Deli",
         [
@@ -3015,7 +2999,7 @@ export const products: Product[] = [
     ),
 
     productWithVariants(
-        231,
+        229,
         "Coleslaw",
         "Deli",
         [
@@ -3027,7 +3011,7 @@ export const products: Product[] = [
     ),
 
     productWithVariants(
-        232,
+        230,
         "Potato Salad",
         "Deli",
         [
@@ -3039,7 +3023,7 @@ export const products: Product[] = [
     ),
 
     productWithVariants(
-        233,
+        231,
         "Pasta Salad",
         "Deli",
         [
@@ -3051,7 +3035,7 @@ export const products: Product[] = [
     ),
 
     productWithVariants(
-        234,
+        232,
         "Rotisserie Chicken",
         "Deli",
         [
@@ -3064,7 +3048,7 @@ export const products: Product[] = [
     ),
 
     productWithVariants(
-        235,
+        233,
         "Pizza",
         "Deli",
         [
